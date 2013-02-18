@@ -24,6 +24,22 @@ The terrain is deformed and colored based off the ground texture (which is only 
 
 The water works almost the same way, but with a few key differences. Instead of the fragment color being determined by height it is set to a constant light blue color. In addition to diffuse lighting, the water also features specular reflections. Additionally, the normals are exaggerated in shaders so that the reflection appears more distorted than the actual mesh is. The "shininess" of the specular reflection is altered based on cloud coverage, and the alpha transparency of the fragment is determined by the intensity of light that is currently hitting the fragment.
 
-Compared to previous projects, this project features a free camera. Movement through the world is accomplished through standard WSAD keys and the mouse. The 'W' and 'S' key goes forward and backwards and the 'A' and 'D' key moves left and right respectively. The 'Q' and 'E' keys adjust the height of the camera, and the mouse pans and tilts the camera.
+Movement through the world is accomplished through standard WSAD keys and the mouse. The 'W' and 'S' key goes forward and backwards and the 'A' and 'D' key moves left and right respectively. The 'Q' and 'E' keys adjust the height of the camera, and the mouse pans and tilts the camera.
 
-Additionally, there are other features to work with. The 'X' key toggles wireframes on/off, the 'B' key toggles alpha blending for water on/off, the 'H' key toggles the HUD on/off, the 'F' key toggles fullscreen on/off, and the 'Escape' key quits the program. Additionally, Control-T toggles rendering the terrain on/off, Control-W toggles rendering the water on/off, and Control-R forces regeneration of the terrain texture. 
+Additionally, there are other features to work with. The 'X' key toggles wireframes on/off, the 'B' key toggles alpha blending for water on/off, the 'H' key toggles the HUD on/off, the 'F' key toggles fullscreen on/off, and the 'Escape' key quits the program. Additionally, Control-T toggles rendering the terrain on/off, Control-W toggles rendering the water on/off, and Control-R forces regeneration of the terrain texture. The spacebar pauses updating of the textures.
+
+
+Performance testing:
+There are several parameters that can be adjusted on the fly to test performance differences:
+-Water and ground mesh size individually, with the mesh ranging from a 256x256 vertex square to a 2048x2048 vertex square in increments of 256 vertices.
+-The size of the ground, water, and cloud textures individually, with each texture ranging from 256x256 to 2048x2048 pixels in increments of 256 pixels.
+-The shader used to render the water and the ground invidiually. The water shader can be toggled between three different shaders described above, and the ground can be toggled between the two shaders mentioned above.
+
+To adjust these parameters:
+The '1' key toggles between water shaders.
+The '2' key toggles between ground shaders.
+The '[' and ']' keys adjust the ground mesh size.
+The 'O' and 'P' keys adjust the ground texture size.
+The ';' and ''' keys adjust the water mesh size.
+The 'K' and 'L' keys adjust the water texture size.
+The ',' and '.' keys adjust the cloud texture size.
