@@ -20,7 +20,7 @@ void main(void)
     ground = ground * ground + ground;
     ground = max(0.15 - ground,0.0);
     ground *= ground;
-    //    ground *= 125.0;
+
     // get the coordinates for the clouds
     skyCoords =  ((gl_Vertex.xy + 3000.0)/6000.0);
 
@@ -31,21 +31,10 @@ void main(void)
     vec2 eCoords = texCoords + vec2(0.0000,0.5/512.0);
     vec2 wCoords = texCoords - vec2(0.0000,0.5/512.0);
 
-    vec4 dampening;
-    dampening.x = texture2D(texture1,nCoords).r;
-    dampening.y = texture2D(texture1, sCoords).r;
-    dampening.z = texture2D(texture1,eCoords).r;
-    dampening.w = texture2D(texture1, wCoords).r;
-
-    dampening = dampening * dampening + dampening;
-
-   dampening = max(0.15 - dampening, 0.0);
-   dampening *= dampening;
-
-    float nsDiff = texture2D(texture2,nCoords).r * dampening.x - texture2D(texture2,sCoords).r * dampening.y ;
-    float ewDiff = texture2D(texture2,eCoords).r * dampening.z - texture2D(texture2,wCoords).r * dampening.w ;
-    vec3 vector1 = vec3(4.0,0.0,nsDiff * 10.0);
-    vec3 vector2 = vec3(0.0,4.0,ewDiff * 10.0);
+    float nsDiff = texture2D(texture2,nCoords).r  - texture2D(texture2,sCoords).r ;
+    float ewDiff = texture2D(texture2,eCoords).r  - texture2D(texture2,wCoords).r;
+    vec3 vector1 = vec3(4.0,0.0,nsDiff * 10.0 * ground);
+    vec3 vector2 = vec3(0.0,4.0,ewDiff * 10.0 * ground);
 
     // calculate the normal
     normal = gl_NormalMatrix * cross(vector1,vector2);

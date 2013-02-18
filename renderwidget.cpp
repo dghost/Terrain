@@ -13,9 +13,12 @@ RenderWidget::RenderWidget(const QGLFormat& format, QGLWidget *parent) :
     _ortho = true;
     _textureLoaded = false;
     _hud.enabled = true;
-    _mesh512.mesh = NULL;
-    _mesh512.index = NULL;
-    _mesh512.vboID = 0;
+    for (int i = 0 ; i < 10 ; i++)
+    {
+        _flatMesh[i].mesh = NULL;
+        _flatMesh[i].index = NULL;
+        _flatMesh[i].vboID = 0;
+    }
     _skysphere.mesh = NULL;
     _skysphere.index = NULL;
     _skysphere.vboID = 0;
@@ -31,7 +34,14 @@ RenderWidget::RenderWidget(const QGLFormat& format, QGLWidget *parent) :
 
     _paused = false;
 
+    _groundMesh = 1;
+    _waterMesh = 2;
+    _gndTexture = 3;
+    _wtrTexture = 3;
+    _cldTexture = 2;
 
+    _wtrShader = 2;
+    _gndShader = 1;
 
     _camera.x = 0;
     _camera.y = 0;
@@ -50,55 +60,63 @@ RenderWidget::RenderWidget(const QGLFormat& format, QGLWidget *parent) :
     _mesh.timeElapsed = (float) (QTime::currentTime()).msec();
     _mesh.texOffsets = glm::vec2(0.0);
 
+    _fpsInfo.fps = 0;
+    _fpsInfo.count = 0;
+    _fpsInfo.sec0 = 0;
 
-    // start tracking time
-    _runTime.start();
-
-    // generate meshes
-
-    _timerID = startTimer(0);
-
-    grabMouse();
-    QCursor::setPos(width()/2,height()/2);
-    _mouseStatus.startX = width()/2;
-    _mouseStatus.startY = height()/2;
-    setCursor( QCursor( Qt::BlankCursor ) );
-    setMouseTracking(true);
-
+    setCursor(QCursor(Qt::BlankCursor));
 }
 
 RenderWidget::~RenderWidget()
 {
-    if (_mesh512.mesh != NULL)
-        free(_mesh512.mesh);
+    makeCurrent();
 
-    if (_mesh512.index != NULL)
-        free(_mesh512.index);
+    for (int i = 0 ; i < 5 ; i++)
+    {
+        if (_flatMesh[i].mesh != NULL)
+            free(_flatMesh[i].mesh);
 
+        if (_flatMesh[i].index != NULL)
+            free(_flatMesh[i].index);
+        _qgl.glDeleteBuffers(1,&_groundTexture[i].frameBuffer);
+        glDeleteTextures(1,&_groundTexture[i].textureHandle);
+        _qgl.glDeleteBuffers(1,&_cloudTexture[i].frameBuffer);
+        glDeleteTextures(1,&_cloudTexture[i].textureHandle);
+        _qgl.glDeleteBuffers(1,&_waterTexture[i].frameBuffer);
+        glDeleteTextures(1,&_waterTexture[i].textureHandle);
+    }
+
+    delete _sky;
+    delete _terrain;
+    delete _clouds;
+    delete _flow;
+
+    for (int i = 0 ; i < 3 ; i++)
+    {
+        delete _water[i];
+    }
+
+
+    for (int i = 0 ; i < 2 ; i++)
+    {
+        delete _ground[i];
+    }
     if (_skysphere.mesh != NULL)
         free(_skysphere.mesh);
     if (_skysphere.index != NULL)
         free(_skysphere.index);
 
-
-    _qgl.glDeleteBuffers(1,&_groundTexture.frameBuffer);
-    glDeleteTextures(1,&_groundTexture.textureHandle);
-    _qgl.glDeleteBuffers(1,&_cloudTexture.frameBuffer);
-    glDeleteTextures(1,&_cloudTexture.textureHandle);
-    _qgl.glDeleteBuffers(1,&_waterTexture.frameBuffer);
-    glDeleteTextures(1,&_waterTexture.textureHandle);
+    doneCurrent();
+    setCursor(QCursor(Qt::ArrowCursor));
 }
 
 
 // handle resizing the view
 void RenderWidget::resizeGL(int width, int height)
 {
-
     if (height == 0) {
         height = 1;
     }
-
-
 
     _hud.resolution = QString("Resolution: %1 x %2").arg(width).arg(height);
     debug(_hud.resolution);
@@ -113,9 +131,6 @@ void RenderWidget::resizeGL(int width, int height)
 
     glFrustum(-fW, fW, -fH, fH, 1.0f, 5000.0f);
     glMatrixMode(GL_MODELVIEW);
-
-
-
 }
 
 void RenderWidget::initializeGL()
@@ -125,7 +140,6 @@ void RenderWidget::initializeGL()
     _hud.oglVersion = QString("OGL: %1 GLSL: %2").arg((char *) glGetString(GL_VERSION)).arg((char *) glGetString(GL_SHADING_LANGUAGE_VERSION));
     debug(_hud.oglVersion);
 
-
     int MaxVertexTextureImageUnits;
     glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &MaxVertexTextureImageUnits);
     int MaxCombinedTextureImageUnits;
@@ -134,7 +148,6 @@ void RenderWidget::initializeGL()
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,&MaxFragmnetTextureImageUnits);
 
     _hud.textureUnits = QString("Max TIUS - Frag: %1 Vert: %2 Comb: %3").arg(MaxFragmnetTextureImageUnits).arg(MaxVertexTextureImageUnits).arg(MaxCombinedTextureImageUnits);
-
     debug(_hud.textureUnits);
 
     GLint dims[2];
@@ -143,42 +156,76 @@ void RenderWidget::initializeGL()
     _hud.maxSize = QString("Max viewport: %1 x %2").arg(dims[0]).arg(dims[1]);
     debug(_hud.maxSize);
 
-    debug("Generating flat mesh...");
-    generateFlatMesh(_mesh512,512,512,2.0);
-    debug("Generating sphere mesh...");
-    generateSphere(_skysphere,16,16,1.0);
-
-
     /* generate shaders */
     debug("Compiling Sky shader...");
-    _sky.addShaderFromSourceFile(QGLShader::Vertex,QString("Sky.vert"));
-    _sky.addShaderFromSourceFile(QGLShader::Fragment,QString("Sky.frag"));
-    _sky.link();
+    _sky = new QGLShaderProgram(this);
+    _sky->addShaderFromSourceFile(QGLShader::Vertex,QString("Sky.vert"));
+    _sky->addShaderFromSourceFile(QGLShader::Fragment,QString("Sky.frag"));
+    _sky->link();
 
     debug("Compiling Ground shader...");
-    _ground.addShaderFromSourceFile(QGLShader::Vertex,QString("Ground.vert"));
-    _ground.addShaderFromSourceFile(QGLShader::Fragment,QString("Ground.frag"));
-    _ground.link();
+    _ground[0] = new QGLShaderProgram(this);
+    _ground[0]->addShaderFromSourceFile(QGLShader::Vertex,QString("Ground.vert"));
+    _ground[0]->addShaderFromSourceFile(QGLShader::Fragment,QString("GroundNoCaustic.frag"));
+    _ground[0]->link();
+
+    _ground[1] = new QGLShaderProgram(this);
+    _ground[1]->addShaderFromSourceFile(QGLShader::Vertex,QString("Ground.vert"));
+    _ground[1]->addShaderFromSourceFile(QGLShader::Fragment,QString("Ground.frag"));
+    _ground[1]->link();
 
     debug("Compiling Water shader...");
-    _water.addShaderFromSourceFile(QGLShader::Vertex,QString("Water.vert"));
-    _water.addShaderFromSourceFile(QGLShader::Fragment,QString("Water.frag"));
-    _water.link();
+    _water[2] = new QGLShaderProgram(this);
+    _water[2]->addShaderFromSourceFile(QGLShader::Vertex,QString("Water.vert"));
+    _water[2]->addShaderFromSourceFile(QGLShader::Fragment,QString("Water.frag"));
+    _water[2]->link();
+
+    _water[1] = new QGLShaderProgram(this);
+    _water[1]->addShaderFromSourceFile(QGLShader::Vertex,QString("WaterFast.vert"));
+    _water[1]->addShaderFromSourceFile(QGLShader::Fragment,QString("Water.frag"));
+    _water[1]->link();
+
+    _water[0] = new QGLShaderProgram(this);
+    _water[0]->addShaderFromSourceFile(QGLShader::Vertex,QString("WaterFast.vert"));
+    _water[0]->addShaderFromSourceFile(QGLShader::Fragment,QString("WaterFast.frag"));
+    _water[0]->link();
 
     debug("Compiling flow shader...");
-    _flow.addShaderFromSourceFile(QGLShader::Vertex,QString("quad.vert"));
-    _flow.addShaderFromSourceFile(QGLShader::Fragment,QString("flow.frag"));
-    _flow.link();
+    _flow = new QGLShaderProgram(this);
+    _flow->addShaderFromSourceFile(QGLShader::Vertex,QString("quad.vert"));
+    _flow->addShaderFromSourceFile(QGLShader::Fragment,QString("flow.frag"));
+    _flow->link();
 
     debug("Compiling cloud shader...");
-    _clouds.addShaderFromSourceFile(QGLShader::Vertex,QString("quad.vert"));
-    _clouds.addShaderFromSourceFile(QGLShader::Fragment,QString("clouds.frag"));
-    _clouds.link();
+    _clouds = new QGLShaderProgram(this);
+    _clouds->addShaderFromSourceFile(QGLShader::Vertex,QString("quad.vert"));
+    _clouds->addShaderFromSourceFile(QGLShader::Fragment,QString("clouds.frag"));
+    _clouds->link();
 
     debug("Compiling terrain shader...");
-    _terrain.addShaderFromSourceFile(QGLShader::Vertex,QString("quad.vert"));
-    _terrain.addShaderFromSourceFile(QGLShader::Fragment,QString("terrain.frag"));
-    _terrain.link();
+    _terrain = new QGLShaderProgram(this);
+    _terrain->addShaderFromSourceFile(QGLShader::Vertex,QString("quad.vert"));
+    _terrain->addShaderFromSourceFile(QGLShader::Fragment,QString("terrain.frag"));
+    _terrain->link();
+
+
+    int size = 256;
+    for (int i = 0; i < 8 ; i++)
+    {
+        _hud.sizes[i] = QString("%1 x %1").arg(size);
+        debug(QString("Generating flat mesh of size %1").arg(size));
+        generateFlatMesh(_flatMesh[i],size,size,2048.0 / size);
+
+        debug(QString("Generating textures of size %1").arg(size));
+        initTexture(_waterTexture[i],size,size);
+        initTexture(_groundTexture[i],size,size);
+        initTexture(_cloudTexture[i],size,size);
+
+        size += 256;
+    }
+
+    debug("Generating sphere mesh...");
+    generateSphere(_skysphere,16,16,1.0);
 
 
     // standard opengl enables
@@ -192,16 +239,28 @@ void RenderWidget::initializeGL()
 
     debug("Generating textures...");
     /* initialize textures for FBO's */
-    initTexture(_waterTexture,512,512);
-    initTexture(_groundTexture,1024,1024);
-    initTexture(_cloudTexture,512,512);
+
 
     /* generate the initial ground value */
-    generateTexture(_groundTexture,&_terrain);
+    debug("Generating ground textures");
+    for (int i = 0 ; i < 8 ; i++)
+    {
+        generateTexture(_groundTexture[i],_terrain);
+    }
 
 
+    grabMouse();
+    QCursor::setPos(width()/2,height()/2);
+    _mouseStatus.startX = width()/2;
 
+    setMouseTracking(true);
 
+    // start tracking time
+    _runTime.start();
+    _fpsTime.start();
+    // generate meshes
+
+    _timerID = startTimer(0);
 }
 
 
@@ -211,7 +270,7 @@ void RenderWidget::timerEvent ( QTimerEvent * event )
     qint64 timeElapsed = _runTime.nsecsElapsed();
     float msElapsedSinceRender = timeElapsed / 1000000.0;
 
-    if (msElapsedSinceRender >= 1.0f/60.0f)
+    if (msElapsedSinceRender >= 0.0)
     {
         _runTime.start();
 
@@ -254,8 +313,8 @@ void RenderWidget::paintGL()
     {
         // if not paused update the textures
         if (_modes.drawWater)
-            generateTexture(_waterTexture,&_flow);
-        generateTexture(_cloudTexture,&_clouds);
+            generateTexture(_waterTexture[_wtrTexture],_flow);
+        generateTexture(_cloudTexture[_cldTexture],_clouds);
     }
 
 
@@ -271,164 +330,216 @@ void RenderWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-    /* Draw the sky */
-
     _qgl.glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D,_cloudTexture.textureHandle);
+    glBindTexture(GL_TEXTURE_2D,_cloudTexture[_cldTexture].textureHandle);
+    _qgl.glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D,_groundTexture[_gndTexture].textureHandle);
+    _qgl.glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D,_waterTexture[_wtrTexture].textureHandle);
 
 
 
-    if (_mesh512.mesh != NULL && _mesh512.index != NULL)
+    if (_modes.drawTerrain)
     {
-        _qgl.glBindBuffer(GL_ARRAY_BUFFER,_mesh512.vboID);
-
-        _qgl.glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D,_groundTexture.textureHandle);
-
-        _qgl.glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D,_waterTexture.textureHandle);
-
-        /* draw the terrain */
-        if (_modes.drawTerrain)
+        if (_flatMesh[_groundMesh].mesh != NULL && _flatMesh[_groundMesh].index != NULL)
         {
-
-            _ground.bind();
-            GLint t0Loc = _ground.uniformLocation("texture0");
-            GLint t1Loc = _ground.uniformLocation("texture1");
-            _ground.setUniformValue(t0Loc,0);
-            _ground.setUniformValue(t1Loc,1);
+            int index = _gndShader;
+            _qgl.glBindBuffer(GL_ARRAY_BUFFER,_flatMesh[_groundMesh].vboID);
 
 
-            drawMesh(_mesh512);
-            _ground.release();
-            trisRendered += _mesh512.indexCount / 3;
-        //    glBindTexture(GL_TEXTURE_2D,0);
+            /* draw the terrain */
+
+
+            _ground[index]->bind();
+            GLint t0Loc = _ground[index]->uniformLocation("texture0");
+            GLint t1Loc = _ground[index]->uniformLocation("texture1");
+            GLint t2Loc = _ground[index]->uniformLocation("texture2");
+
+            _ground[index]->setUniformValue(t0Loc,0);
+            _ground[index]->setUniformValue(t1Loc,1);
+            _ground[index]->setUniformValue(t2Loc,2);
+
+
+            drawMesh(_flatMesh[_groundMesh]);
+            _ground[index]->release();
+            trisRendered += _flatMesh[_groundMesh].indexCount / 3;
+
 
         }
 
- //       glDisable(GL_CULL_FACE);
 
         /* draw the water */
-
-        if (_modes.drawWater)
+    }
+    if (_modes.drawWater)
+    {
+        if (_flatMesh[_waterMesh].mesh != NULL && _flatMesh[_waterMesh].index != NULL)
         {
+            int index = _wtrShader;
+            _qgl.glBindBuffer(GL_ARRAY_BUFFER,_flatMesh[_waterMesh].vboID);
             if (_modes.blendWater)
             {
                 glEnable(GL_BLEND);
                 glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             }
 
-            _water.bind();
-            GLint t0Loc = _water.uniformLocation("texture0");
-            GLint t1Loc = _water.uniformLocation("texture1");
-            GLint t2Loc = _water.uniformLocation("texture2");
+            _water[index]->bind();
+            GLint t0Loc = _water[index]->uniformLocation("texture0");
+            GLint t1Loc = _water[index]->uniformLocation("texture1");
+            GLint t2Loc = _water[index]->uniformLocation("texture2");
 
-            _water.setUniformValue(t0Loc,0);
-            _water.setUniformValue(t1Loc,1);
-            _water.setUniformValue(t2Loc,2);
+            _water[index]->setUniformValue(t0Loc,0);
+            _water[index]->setUniformValue(t1Loc,1);
+            _water[index]->setUniformValue(t2Loc,2);
 
-            drawMesh(_mesh512);
+            drawMesh(_flatMesh[_waterMesh]);
 
-            _water.release();
+            _water[index]->release();
 
             if (_modes.blendWater)
             {
                 glDisable(GL_BLEND);
             }
 
-            glBindTexture(GL_TEXTURE_2D,0);
-            trisRendered += _mesh512.indexCount / 3;
+            trisRendered += _flatMesh[_waterMesh].indexCount / 3;
+
         }
-        _qgl.glActiveTexture(GL_TEXTURE0);
-        _qgl.glBindBuffer(GL_ARRAY_BUFFER,0);
+
     }
+
 
     if (_skysphere.mesh != NULL && _skysphere.index != NULL)
     {
         _qgl.glBindBuffer(GL_ARRAY_BUFFER,_skysphere.vboID);
 
-        _sky.bind();
-        GLint tLoc = _sky.uniformLocation("in_Time");
+        _sky->bind();
+        GLint t0Loc = _sky->uniformLocation("texture0");
+
+        _sky->setUniformValue(t0Loc,0);
+
+        GLint tLoc = _sky->uniformLocation("in_Time");
         _qgl.glUniform1f(tLoc,_mesh.timeElapsed);
-        GLint oLoc = _sky.uniformLocation("in_Offsets");
+        GLint oLoc = _sky->uniformLocation("in_Offsets");
         _qgl.glUniform2fv(oLoc,1,glm::value_ptr(_mesh.texOffsets));
 
         drawMesh(_skysphere);
 
-        _sky.release();
+        _sky->release();
 
         trisRendered += _skysphere.indexCount / 3;
-        _qgl.glBindBuffer(GL_ARRAY_BUFFER,0);
 
 
     }
+    _qgl.glBindBuffer(GL_ARRAY_BUFFER,0);
+    _qgl.glActiveTexture(GL_TEXTURE0);
     glFinish();
+
 
     qint64 timeElapsed = renderTimer.nsecsElapsed();
     float msElapsed = timeElapsed / 1000000.0;
-
-
+    _hud.frameTime = QString("Frame draw time: %1").arg(msElapsed);
+    _hud.numTris = QString("Number of triangles: %1").arg(trisRendered);
     /* draw the HUD */
 
     if (_hud.enabled)
     {
-        QString text;
-        int offset = 20;
-
-        renderText(10,offset,_hud.oglVersion,this->font());
-        offset += 20;
-
-        renderText(10,offset,_hud.resolution,this->font());
-        offset += 20;
-
-        text = QString("Number of triangles: %1").arg(trisRendered);
-        renderText(10,offset,text,this->font());
-        offset += 20;
-
-        text = QString("Frame draw time: %1").arg(msElapsed);
-        renderText(10,offset,text,this->font());
-        offset += 20;
-
-        if (!_modes.blendWater)
-        {
-            text = QString("Blending disabled");
-        } else {
-            text = QString("Blending enabled");
-        }
-        renderText(10,offset,text,this->font());
-        offset += 20;
-
-        if (!_modes.drawTerrain)
-        {
-            text = QString("Terrain mesh disabled");
-            renderText(10,offset,text,this->font());
-            offset += 20;
-        }
-        if (!_modes.drawWater)
-        {
-            text = QString("Water mesh disabled");
-            renderText(10,offset,text,this->font());
-            offset += 20;
-        }
-
-
-
-        if (_wireFrame)
-        {
-            text = QString("Wireframe mode");
-            renderText(10,offset,text,this->font());
-            offset += 20;
-        }
-
-        if (_paused)
-        {
-            text = QString("PAUSED");
-            renderText(10,offset,text,this->font());
-            offset += 20;
-        }
+        drawHUD();
     }
 }
 
+void RenderWidget::drawHUD()
+{
+    QString text;
+    int offset = 20;
+
+//    renderText(10,offset,_hud.oglVersion,this->font());
+//    offset += 20;
+
+    renderText(10,offset,_hud.resolution,this->font());
+    offset += 20;
+
+    renderText(10,offset,_hud.numTris,this->font());
+    offset += 20;
+
+    if (_gndShader == 0)
+    {
+        text = QString("Ground: No Caustics");
+    } else {
+        text = QString("Ground: Caustics");
+    }
+
+    renderText(10,offset,text,this->font());
+    offset += 20;
+
+    text = QString("Ground mesh size: %1").arg(_hud.sizes[_groundMesh]);
+    renderText(10,offset,text,this->font());
+    offset += 20;
+
+    text = QString("Ground texture size: %1").arg(_hud.sizes[_gndTexture]);
+    renderText(10,offset,text,this->font());
+    offset += 20;
+
+    if (_wtrShader == 0)
+    {
+        text = QString("Water: No Specular");
+    } else if (_wtrShader == 1){
+        text = QString("Water: Specular, Fast Normals");
+
+    } else {
+        text = QString("Water: Specular, Slow Normals");
+    }
+    renderText(10,offset,text,this->font());
+    offset += 20;
+    text = QString("Water mesh size: %1").arg(_hud.sizes[_waterMesh]);
+    renderText(10,offset,text,this->font());
+    offset += 20;
+
+
+    text = QString("Water texture size: %1").arg(_hud.sizes[_wtrTexture]);
+    renderText(10,offset,text,this->font());
+    offset += 20;
+
+    text = QString("Cloud texture size: %1").arg(_hud.sizes[_cldTexture]);
+    renderText(10,offset,text,this->font());
+    offset += 20;
+
+    text = QString("FPS: %1").arg(FramesPerSecond());
+    renderText(10,offset,text,this->font());
+    offset += 20;
+
+    if (!_modes.blendWater)
+    {
+        text = QString("Blending disabled");
+        renderText(10,offset,text,this->font());
+        offset += 20;
+    }
+
+    if (!_modes.drawTerrain)
+    {
+        text = QString("Terrain mesh disabled");
+        renderText(10,offset,text,this->font());
+        offset += 20;
+    }
+    if (!_modes.drawWater)
+    {
+        text = QString("Water mesh disabled");
+        renderText(10,offset,text,this->font());
+        offset += 20;
+    }
+
+    if (_wireFrame)
+    {
+        text = QString("Wireframe mode");
+        renderText(10,offset,text,this->font());
+        offset += 20;
+    }
+
+    if (_paused)
+    {
+        text = QString("PAUSED");
+        renderText(10,offset,text,this->font());
+        offset += 20;
+    }
+}
 
 void RenderWidget::updateCamera()
 {
@@ -519,17 +630,12 @@ void RenderWidget::drawMesh(mesh_t &mesh)
 {
     if (mesh.vboID == 0)
     {
-
-
-    glInterleavedArrays(GL_T2F_N3F_V3F,0,mesh.mesh);
-    glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, mesh.index );
-
-
+        glInterleavedArrays(GL_T2F_N3F_V3F,0,mesh.mesh);
+        glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, mesh.index );
     } else {
-
         glInterleavedArrays(GL_T2F_N3F_V3F,0,NULL);
         glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, mesh.index );
- //       _qgl.glBindBuffer(GL_ARRAY_BUFFER,0);
+        //       _qgl.glBindBuffer(GL_ARRAY_BUFFER,0);
     }
 }
 
@@ -586,7 +692,6 @@ void RenderWidget::initTexture(texture_t &texture, int width, int height)
     texture.height = height;
     texture.textureHandle = 0;
 
-
     glGenTextures(1, &texture.textureHandle);
 
     // Bind to current texture
@@ -596,7 +701,6 @@ void RenderWidget::initTexture(texture_t &texture, int width, int height)
 
     // Give an empty image to OpenGL
     glTexImage2D(GL_TEXTURE_2D, 0,GL_R32F, texture.width, texture.height, 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
-
 
     // generate the framebuffer object
     _qgl.glGenFramebuffers(1, &texture.frameBuffer);
@@ -633,7 +737,7 @@ void RenderWidget::generateFlatMesh(mesh_t &mesh, int width, int height, float s
                 temp.normal.z = 1.0;
                 temp.texture.u = i / (float) width;
                 temp.texture.v = j / (float) height;
-                _mesh512.mesh[i * (height + 1) + j] = temp;
+                mesh.mesh[i * (height + 1) + j] = temp;
             }
         }
     }
@@ -790,3 +894,16 @@ void RenderWidget::generateSphere(mesh_t &mesh, int width, int height, float rad
 }
 
 
+
+int RenderWidget::FramesPerSecond()
+{
+    int sec = _fpsTime.elapsed()/1000;
+    if (sec !=_fpsInfo.sec0)
+    {
+        _fpsInfo.sec0 = sec;
+        _fpsInfo.fps = _fpsInfo.count;
+        _fpsInfo.count=0;
+    }
+    _fpsInfo.count++;
+    return _fpsInfo.fps;
+}

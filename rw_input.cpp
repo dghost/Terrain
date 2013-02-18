@@ -14,7 +14,7 @@ void RenderWidget::keyPressEvent(QKeyEvent *event)
         }
 
 
-        if(event->key() == Qt::Key_P)
+        if(event->key() == Qt::Key_Space)
         {
             _paused = !_paused;
         }
@@ -60,16 +60,6 @@ void RenderWidget::keyPressEvent(QKeyEvent *event)
         {
             _keysDown.Minus = true;
         }
-        if(event->key() == Qt::Key_Space)
-        {
-            /*
-            if (_camera.mode == 1)
-                _camera.mode = 0;
-            else
-                _camera.mode++;
-                */
-        }
-
         if (event->key() == Qt::Key_F)
         {
             if (isFullScreen())
@@ -94,7 +84,10 @@ void RenderWidget::keyPressEvent(QKeyEvent *event)
 
         if(event->key() == Qt::Key_R  && event->modifiers().testFlag(Qt::ControlModifier))
         {
-            generateTexture(_groundTexture,&_terrain);
+            for (int i = 0 ; i < 8 ; i++)
+            {
+                generateTexture(_groundTexture[i],_terrain);
+            }
         }
 
         if(event->key() == Qt::Key_T  && event->modifiers().testFlag(Qt::ControlModifier))
@@ -106,7 +99,77 @@ void RenderWidget::keyPressEvent(QKeyEvent *event)
         {
             _wireFrame = !_wireFrame;
         }
+        if(event->key() == Qt::Key_BracketLeft)
+        {
+            if (_groundMesh > 0)
+                _groundMesh--;
+        }
 
+        if(event->key() == Qt::Key_BracketRight)
+        {
+            if (_groundMesh < 7)
+                _groundMesh++;
+        }
+
+        if(event->key() == Qt::Key_Semicolon)
+        {
+            if (_waterMesh > 0)
+                _waterMesh--;
+        }
+
+        if(event->key() == Qt::Key_Apostrophe)
+        {
+            if (_waterMesh < 7)
+                _waterMesh++;
+        }
+        if(event->key() == Qt::Key_O)
+        {
+            if (_gndTexture > 0)
+                _gndTexture--;
+        }
+
+        if(event->key() == Qt::Key_P)
+        {
+            if (_gndTexture < 7)
+                _gndTexture++;
+        }
+        if(event->key() == Qt::Key_K)
+        {
+            if (_wtrTexture > 0)
+                _wtrTexture--;
+        }
+
+        if(event->key() == Qt::Key_L)
+        {
+            if (_wtrTexture < 7)
+                _wtrTexture++;
+        }
+        if(event->key() == Qt::Key_Comma)
+        {
+            if (_cldTexture > 0)
+                _cldTexture--;
+        }
+
+        if(event->key() == Qt::Key_Period)
+        {
+            if (_cldTexture < 7)
+                _cldTexture++;
+        }
+
+        if(event->key() == Qt::Key_1)
+        {
+            if (_wtrShader < 2)
+                _wtrShader++;
+            else
+                _wtrShader = 0;
+        }
+        if(event->key() == Qt::Key_2)
+        {
+            if (_gndShader)
+                _gndShader = 0;
+            else
+                _gndShader = 1;
+        }
     }
 
 }
@@ -171,7 +234,7 @@ void RenderWidget::mouseMoveEvent ( QMouseEvent * event )
 // handle mouse button pressed
 void RenderWidget::mousePressEvent ( QMouseEvent * event )
 {
-   /*
+    /*
     if (event->buttons().testFlag(Qt::LeftButton))
     {
         _mouseStatus.leftButtonHeldDown = true;
@@ -188,7 +251,7 @@ void RenderWidget::mousePressEvent ( QMouseEvent * event )
 // handle releasing the mouse button
 void RenderWidget::mouseReleaseEvent ( QMouseEvent * event )
 {
- /*
+    /*
     if (!event->buttons().testFlag(Qt::LeftButton))
     {
         _camera.pan = _mouseStatus.origHoriz - (event->x() - _mouseStatus.startX) / 2.0;
@@ -302,9 +365,9 @@ void RenderWidget::focusOutEvent(QFocusEvent *event)
 {
     setMouseTracking(false);
     releaseMouse();
-//    QCursor::setPos(width()/2,height()/2);
-//    _mouseStatus.startX = width()/2;
-//    _mouseStatus.startY = height()/2;
+    //    QCursor::setPos(width()/2,height()/2);
+    //    _mouseStatus.startX = width()/2;
+    //    _mouseStatus.startY = height()/2;
     setCursor( QCursor( Qt::ArrowCursor) );
     event->accept();
 

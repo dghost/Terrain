@@ -86,12 +86,13 @@ class RenderWidget : public QGLWidget
 public:
     explicit RenderWidget(const QGLFormat& format,QGLWidget *parent = 0);
     ~RenderWidget();
-    void toggleWireframe();
+    void toggleWireframe(void);
     void setPerlinScale(float scale);
     void setTimeScale(float timeScale);
     void setSubDivs(int subDivs);
     void setXLength(int length);
     void setYLength(int length);
+    int FramesPerSecond(void);
 protected:
     void paintGL();
     void initializeGL();
@@ -110,6 +111,7 @@ protected:
     void generateFlatMesh(mesh_t &mesh, int width, int height, float scale = 1.0);
     void generateSphere(mesh_t &mesh, int width, int height, float radius = 1.0);
     void drawMesh(mesh_t &mesh);
+    void drawHUD(void);
     void initTexture(texture_t &texture, int width, int height);
     void focusInEvent(QFocusEvent *event);
     void focusOutEvent(QFocusEvent *event);
@@ -159,6 +161,7 @@ private:
     } _keysDown;
 
     QElapsedTimer _runTime;
+    QElapsedTimer _fpsTime;
     bool _wireFrame;
     bool _ortho;
     bool _textureLoaded;
@@ -171,24 +174,41 @@ private:
         QString textureUnits;
         QString maxSize;
         QString frameTime;
+        QString numTris;
+        QString sizes[8];
     } _hud;
     int _timerID;
 
 
-    QGLFunctions _qgl;
-    texture_t _groundTexture;
-    texture_t _cloudTexture;
-    texture_t _waterTexture;
-    QGLShaderProgram _sky;
-    QGLShaderProgram _terrain;
-    QGLShaderProgram _clouds;
-    QGLShaderProgram _ground;
-    QGLShaderProgram _flow;
-    QGLShaderProgram _water;
+    mesh_t _flatMesh[8];
+    int _groundMesh;
+    int _waterMesh;
+    int _gndTexture;
+    int _wtrTexture;
+    int _cldTexture;
 
-    mesh_t _mesh512;
+    int _wtrShader;
+    int _gndShader;
+
+    QGLFunctions _qgl;
+    texture_t _groundTexture[8];
+    texture_t _cloudTexture[8];
+    texture_t _waterTexture[8];
+
+    QGLShaderProgram *_sky;
+    QGLShaderProgram *_terrain;
+    QGLShaderProgram *_clouds;
+    QGLShaderProgram* _ground[2];
+    QGLShaderProgram *_flow;
+    QGLShaderProgram* _water[3];
+
     mesh_t _skysphere;
 
+    struct {
+        int fps;
+        int sec0;
+        int count;
+    } _fpsInfo;
 };
 
 #endif // RENDERWIDGET_H

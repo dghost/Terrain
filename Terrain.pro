@@ -12,7 +12,7 @@ CONFIG   -= app_bundle
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = HW3
+TARGET = Terrain
 TEMPLATE = app
 
 
@@ -34,6 +34,9 @@ OTHER_FILES += \
     Water.vert \
     Water.frag \
     clouds.frag \
-    terrain.frag
+    terrain.frag \
+    WaterFast.vert \
+    WaterFast.frag \
+    GroundNoCaustic.frag
 
 INCLUDEPATH += .\

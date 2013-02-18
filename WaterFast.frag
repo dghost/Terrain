@@ -27,16 +27,10 @@ void main(void)
     float specular = 0.0;
     // generate the specular component
 
-        vec3 E = normalize(eye);
-        vec3 R = reflect(-L, N);
-        specular = pow( max(dot(R, E), 0.0),
-                              15.0 + 25.0 * (value));
-        color += specular * value;
-
 
     // write the final color
     // Ambient light is 0.4, specular and diffuse are multiplied by value indicating if cloud is overhead or not
     gl_FragColor = color;
     // set the transparency based on how much ambient light is hitting it
-    gl_FragColor.a = (0.5 - max((value - specular) * 0.3,0.0));
+    gl_FragColor.a = (0.5 + specular - max(value * 0.3,0.0));
 }

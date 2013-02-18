@@ -1,0 +1,14 @@
+*.user
+*.o
+moc_*
+
+Makefile
+
+Terrain
+
+
+.DS_Store
+
+*.autosave
+
+*.user

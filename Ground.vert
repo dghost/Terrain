@@ -19,10 +19,10 @@ void main(void)
     vec3 neigh3 = gl_Vertex.xyz - vec3(0.0,1.0,0.0);
 */
 
-    vec2 nCoords = texCoords + vec2(0.25/512.0,0.000);
-    vec2 sCoords = texCoords - vec2(0.25/512.0,0.000);
-    vec2 eCoords = texCoords + vec2(0.0000,0.25/512.0);
-    vec2 wCoords = texCoords - vec2(0.0000,0.25/512.0);
+    vec2 nCoords = texCoords + vec2(1.0/512.0,0.000);
+    vec2 sCoords = texCoords - vec2(1.0/512.0,0.000);
+    vec2 eCoords = texCoords + vec2(0.0000,1.0/512.0);
+    vec2 wCoords = texCoords - vec2(0.0000,1.0/512.0);
 
     vec4 t;
     t.x = texture2D(texture1,nCoords).r;
@@ -30,12 +30,12 @@ void main(void)
     t.z = texture2D(texture1,eCoords).r;
     t.w = texture2D(texture1,wCoords).r;
 
-      t = t * t + t;
+    t = t * t + t;
 
     float nsDiff = t.x - t.y;
     float ewDiff = t.z - t.w;
-    vec3 vector1 = vec3(2.0,0.0,nsDiff * 125.0);
-    vec3 vector2 = vec3(0.0,2.0,ewDiff * 125.0);
+    vec3 vector1 = vec3(8.0,0.0,nsDiff * 125.0);
+    vec3 vector2 = vec3(0.0,8.0,ewDiff * 125.0);
 
 
     normal = gl_NormalMatrix * cross(vector1,vector2);

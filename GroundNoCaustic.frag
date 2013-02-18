@@ -5,7 +5,6 @@ varying vec3 light_dir;
 
 uniform sampler2D texture0;
 uniform sampler2D texture1;
-uniform sampler2D texture2;
 
 vec4 green = vec4(34.0,139.0,34.0,255.0);
 vec4 dark_green = vec4(0.0,100.0,0.0,255.0);
@@ -27,7 +26,7 @@ void main(void)
     float cloudRaw = smoothstep(-1.0,1.0,texture2D(texture0,skyCoords).r);
     float cloudWeight = 1.0 - cloudRaw;
 
-    float caustic = 0.0;
+
     vec4 color;
 
     if (displacement >= 175.0)
@@ -41,10 +40,6 @@ void main(void)
     } else {
         vec4 diff = green - brown;
         color = brown + diff * smoothstep(-50.0,50.0,displacement);
-        if (displacement < 0.0)
-        {
-            caustic = smoothstep(1.0,-1.0,texture2D(texture2,texCoords).r * 0.2);
-        }
     }
     color /= 255.0;
 
@@ -53,6 +48,6 @@ void main(void)
     vec3 N = normalize(normal);
     float diffuse = max(dot(N,L),0.0);
 
-    gl_FragColor = color * 0.6 + (color - caustic) * diffuse * cloudWeight;
+    gl_FragColor = color * 0.6 + color * diffuse * cloudWeight;
 
 }
