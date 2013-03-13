@@ -66,7 +66,7 @@ RenderWidget::RenderWidget(const QGLFormat& format, QGLWidget *parent) :
 
     setCursor(QCursor(Qt::BlankCursor));
 
-    lightPosition = glm::vec3(1500,1200,1500);
+    lightPosition = glm::vec3(1500,0,1500);
     _lightMovement = glm::vec3(50,0,0);
 }
 
@@ -288,8 +288,8 @@ void RenderWidget::timerEvent ( QTimerEvent * event )
 
        //     lightPosition += _lightMovement;
 
-           // lightPosition.x = 1500 * cos(_mesh.timeElapsed);
-            //lightPosition.z = 1500 * sin(_mesh.timeElapsed);
+            lightPosition.x = 1500 * cos(_mesh.timeElapsed);
+            lightPosition.z = 1500 * fabs(sin(_mesh.timeElapsed));
         }
 
 
@@ -709,7 +709,7 @@ void RenderWidget::initTexture(texture_t &texture, int width, int height)
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR); // Linear Filtering
 
     // Give an empty image to OpenGL
-    glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA16F, texture.width, texture.height, 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA32F, texture.width, texture.height, 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     // generate the framebuffer object
     _qgl.glGenFramebuffers(1, &texture.frameBuffer);
