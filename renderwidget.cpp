@@ -35,12 +35,12 @@ RenderWidget::RenderWidget(const QGLFormat& format, QGLWidget *parent) :
     _paused = false;
 
     _groundMesh = 1;
-    _waterMesh = 2;
-    _gndTexture = 3;
-    _wtrTexture = 3;
-    _cldTexture = 2;
+    _waterMesh = 0;
+    _gndTexture = 1;
+    _wtrTexture = 1;
+    _cldTexture = 1;
 
-    _wtrShader = 2;
+    _wtrShader = 1;
     _gndShader = 1;
 
     _camera.x = 0;
@@ -65,6 +65,9 @@ RenderWidget::RenderWidget(const QGLFormat& format, QGLWidget *parent) :
     _fpsInfo.sec0 = 0;
 
     setCursor(QCursor(Qt::BlankCursor));
+
+    lightPosition = glm::vec3(1500,1200,1500);
+    _lightMovement = glm::vec3(50,0,0);
 }
 
 RenderWidget::~RenderWidget()
@@ -91,7 +94,7 @@ RenderWidget::~RenderWidget()
     delete _clouds;
     delete _flow;
 
-    for (int i = 0 ; i < 3 ; i++)
+    for (int i = 0 ; i < 2 ; i++)
     {
         delete _water[i];
     }
@@ -175,18 +178,13 @@ void RenderWidget::initializeGL()
     _ground[1]->link();
 
     debug("Compiling Water shader...");
-    _water[2] = new QGLShaderProgram(this);
-    _water[2]->addShaderFromSourceFile(QGLShader::Vertex,QString("Water.vert"));
-    _water[2]->addShaderFromSourceFile(QGLShader::Fragment,QString("Water.frag"));
-    _water[2]->link();
-
     _water[1] = new QGLShaderProgram(this);
-    _water[1]->addShaderFromSourceFile(QGLShader::Vertex,QString("WaterFast.vert"));
+    _water[1]->addShaderFromSourceFile(QGLShader::Vertex,QString("Water.vert"));
     _water[1]->addShaderFromSourceFile(QGLShader::Fragment,QString("Water.frag"));
     _water[1]->link();
 
     _water[0] = new QGLShaderProgram(this);
-    _water[0]->addShaderFromSourceFile(QGLShader::Vertex,QString("WaterFast.vert"));
+    _water[0]->addShaderFromSourceFile(QGLShader::Vertex,QString("Water.vert"));
     _water[0]->addShaderFromSourceFile(QGLShader::Fragment,QString("WaterFast.frag"));
     _water[0]->link();
 
@@ -282,6 +280,16 @@ void RenderWidget::timerEvent ( QTimerEvent * event )
             float timePassed = _mesh.timeScale * msElapsedSinceRender / 1000.0;
             _mesh.timeElapsed += timePassed;
             _mesh.texOffsets += glm::vec2(0.1,0.02) * timePassed;
+
+       //     if (lightPosition.x > 1500 || lightPosition.x < -1500) {
+
+       //         _lightMovement = glm::vec3(-_lightMovement.x,-_lightMovement.y,-_lightMovement.z);
+       //     }
+
+       //     lightPosition += _lightMovement;
+
+           // lightPosition.x = 1500 * cos(_mesh.timeElapsed);
+            //lightPosition.z = 1500 * sin(_mesh.timeElapsed);
         }
 
 
@@ -354,10 +362,12 @@ void RenderWidget::paintGL()
             GLint t0Loc = _ground[index]->uniformLocation("texture0");
             GLint t1Loc = _ground[index]->uniformLocation("texture1");
             GLint t2Loc = _ground[index]->uniformLocation("texture2");
+            GLint lPos = _ground[index]->uniformLocation("light_pos");
 
             _ground[index]->setUniformValue(t0Loc,0);
             _ground[index]->setUniformValue(t1Loc,1);
             _ground[index]->setUniformValue(t2Loc,2);
+            _ground[index]->setUniformValueArray(lPos,glm::value_ptr(lightPosition),1,3);
 
 
             drawMesh(_flatMesh[_groundMesh]);
@@ -386,10 +396,11 @@ void RenderWidget::paintGL()
             GLint t0Loc = _water[index]->uniformLocation("texture0");
             GLint t1Loc = _water[index]->uniformLocation("texture1");
             GLint t2Loc = _water[index]->uniformLocation("texture2");
-
+            GLint lPos = _water[index]->uniformLocation("light_pos");
             _water[index]->setUniformValue(t0Loc,0);
             _water[index]->setUniformValue(t1Loc,1);
             _water[index]->setUniformValue(t2Loc,2);
+            _water[index]->setUniformValueArray(lPos,glm::value_ptr(lightPosition),1,3);
 
             drawMesh(_flatMesh[_waterMesh]);
 
@@ -480,12 +491,10 @@ void RenderWidget::drawHUD()
 
     if (_wtrShader == 0)
     {
-        text = QString("Water: No Specular");
+        text = QString("Water: Diffuse");
     } else if (_wtrShader == 1){
-        text = QString("Water: Specular, Fast Normals");
+        text = QString("Water: Fresnel");
 
-    } else {
-        text = QString("Water: Specular, Slow Normals");
     }
     renderText(10,offset,text,this->font());
     offset += 20;
@@ -700,7 +709,7 @@ void RenderWidget::initTexture(texture_t &texture, int width, int height)
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR); // Linear Filtering
 
     // Give an empty image to OpenGL
-    glTexImage2D(GL_TEXTURE_2D, 0,GL_R32F, texture.width, texture.height, 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA16F, texture.width, texture.height, 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     // generate the framebuffer object
     _qgl.glGenFramebuffers(1, &texture.frameBuffer);

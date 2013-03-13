@@ -114,11 +114,11 @@ void main(void)
     // generate significant turbulence in the clouds
     // use base + 6 harmonics
     float value = snoise(vec3(xCoord,yCoord,in_Time));
-    value += snoise(vec3(xCoord* 2.0,yCoord * 2.0,time)) * 1.0 / 2.0;
+     value += snoise(vec3(xCoord* 2.0,yCoord * 2.0,time)) * 1.0 / 2.0;
     value += snoise(vec3(xCoord * 4.0,yCoord* 4.0,time)) * 1.0 / 4.0;
     value += snoise(vec3(xCoord * 8.0,yCoord * 8.0,time)) * 1.0/8.0;
-    value += snoise(vec3(xCoord * 16.0,yCoord * 16.0,time)) * 1.0 / 16.0;
-    value += snoise(vec3(xCoord * 32.0,yCoord * 32.0,time)) * 1.0 / 32.0;
+   value += snoise(vec3(xCoord * 16.0,yCoord * 16.0,time)) * 1.0 / 16.0;
+   value += snoise(vec3(xCoord * 32.0,yCoord * 32.0,time)) * 1.0 / 32.0;
 
     gl_FragColor = vec4(value);
 }

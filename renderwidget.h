@@ -179,7 +179,8 @@ private:
     } _hud;
     int _timerID;
 
-
+    glm::vec3 lightPosition;
+    glm::vec3 _lightMovement;
     mesh_t _flatMesh[8];
     int _groundMesh;
     int _waterMesh;
@@ -200,7 +201,7 @@ private:
     QGLShaderProgram *_clouds;
     QGLShaderProgram* _ground[2];
     QGLShaderProgram *_flow;
-    QGLShaderProgram* _water[3];
+    QGLShaderProgram* _water[2];
 
     mesh_t _skysphere;
 

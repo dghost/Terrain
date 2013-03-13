@@ -1,6 +1,5 @@
 varying vec2 texCoords;
 varying vec2 skyCoords;
-varying vec3 normal;
 varying vec3 light_dir;
 
 uniform sampler2D texture0;
@@ -24,7 +23,7 @@ void main(void)
     displacement *= 125.0;
 
     float cloudRaw = smoothstep(-1.0,1.0,texture2D(texture0,skyCoords).r);
-    float cloudWeight = 1.0 - cloudRaw;
+    float cloudWeight = 1.0 - cloudRaw * 0.5;
 
 
     vec4 color;
@@ -43,11 +42,11 @@ void main(void)
     }
     color /= 255.0;
 
-
+    vec3 normal = gl_NormalMatrix * texture2D(texture1,texCoords).gba;
     vec3 L = normalize(light_dir);
     vec3 N = normalize(normal);
     float diffuse = max(dot(N,L),0.0);
 
-    gl_FragColor = color * 0.6 + color * diffuse * cloudWeight;
+    gl_FragColor = color * 0.25 + color * diffuse * cloudWeight;
 
 }

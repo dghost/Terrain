@@ -108,19 +108,41 @@ float cnoise(vec3 P)
   return 2.2 * n_xyz;
 }
 
+float height(vec2 xy, float time) {
+    float value = cnoise(vec3(xy,time));
+    value += cnoise(vec3(xy*2.0,time)) * 1.0 / 2.0;
+    value += cnoise(vec3(xy*4.0,time)) * 1.0 / 4.0;
+    value += cnoise(vec3(xy*8.0,time)) * 1.0 / 8.0;
+     return value;
+}
+
 void main(void)
 {
     // set scale
-    float xCoord = (TexCoord0.x) * 5.0;
-    float yCoord = (TexCoord0.y ) * 5.0;
+    vec2 texCoords = TexCoord0.xy * 5.0;
     float time = in_Time * 50.0;
 
     // generate harmonic noise - will be smooth compared to clouds
-    float value = cnoise(vec3(xCoord,yCoord,in_Time));
-    value += cnoise(vec3(xCoord* 2.0,yCoord * 2.0,time)) * 1.0 / 2.0;
-    value += cnoise(vec3(xCoord * 4.0,yCoord* 4.0,time)) * 1.0 / 4.0;
-    value += cnoise(vec3(xCoord * 8.0,yCoord* 8.0,time)) * 1.0 / 8.0;
+
+    vec2 nCoords = texCoords + vec2(1.0/512.0,0.000);
+    vec2 sCoords = texCoords - vec2(1.0/512.0,0.000);
+    vec2 eCoords = texCoords + vec2(0.0000,1.0/512.0);
+    vec2 wCoords = texCoords - vec2(0.0000,1.0/512.0);
+
+    vec4 t;
+    t.x = height(nCoords,time);
+    t.y = height(sCoords,time);
+    t.z = height(eCoords,time);
+    t.w = height(wCoords,time);
+
+    t = t * t + t;
+
+    float nsDiff = t.x - t.y;
+    float ewDiff = t.z - t.w;
+    vec3 vector1 = vec3(8.0,0.0,nsDiff * 125.0);
+    vec3 vector2 = vec3(0.0,8.0,ewDiff * 125.0);
 
 
-    gl_FragColor = vec4(value);
+    gl_FragColor.r = height(texCoords,time);
+    gl_FragColor.gba = cross(vector1,vector2);
 }

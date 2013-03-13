@@ -35,7 +35,6 @@ OTHER_FILES += \
     Water.frag \
     clouds.frag \
     terrain.frag \
-    WaterFast.vert \
     WaterFast.frag \
     GroundNoCaustic.frag
 

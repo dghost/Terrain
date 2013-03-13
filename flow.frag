@@ -92,19 +92,42 @@ float srdnoise(in vec2 P, in float rot, out vec2 grad) {
   return 40.0 * (n.x + n.y + n.z);
 }
 
+
+float flow(vec2 p, float time)
+{
+     vec2 g1, g2;
+    float n1 = srdnoise(p*0.5, 0.2*time, g1);
+    float n2 = srdnoise(p*2.0 + g1*0.5, 0.51*time, g2);
+    float n3 = srdnoise(p*4.0 + g1*0.5 + g2*0.25, 0.77*time, g2);
+    return n1+ 0.75*n2 + 0.5*n3;
+}
+
 void main(void)
 {
 
     float time = in_Time * 2.0;
 
-    vec2 g1, g2;
+
     // scale the texture coordinates for better noise
-    vec2 p = TexCoord0.xy * 10.0;
 
+    vec2 texCoords = TexCoord0.xy * 8.0;
     // generate harmonics
-    float n1 = srdnoise(p*0.5, 0.2*time, g1);
-    float n2 = srdnoise(p*2.0 + g1*0.5, 0.51*time, g2);
-    float n3 = srdnoise(p*4.0 + g1*0.5 + g2*0.25, 0.77*time, g2);
+   // float n = flow(TexCoord0.xy,time);
 
-    gl_FragColor = vec4(n1+ 0.75*n2 + 0.5*n3);
+
+
+    // calculate four adjacent vertices
+    vec2 nCoords = texCoords + vec2(0.5/512.0,0.000);
+    vec2 sCoords = texCoords - vec2(0.5/512.0,0.000);
+    vec2 eCoords = texCoords + vec2(0.0000,0.5/512.0);
+    vec2 wCoords = texCoords - vec2(0.0000,0.5/512.0);
+
+    float nsDiff = flow(nCoords,time) - flow(sCoords,time);
+    float ewDiff = flow(eCoords,time) - flow(wCoords,time);
+    vec3 vector1 = vec3(4.0,0.0,nsDiff * 15.0);
+    vec3 vector2 = vec3(0.0,4.0,ewDiff * 15.0);
+
+
+    gl_FragColor.rgb = cross(vector1,vector2);
+    gl_FragColor.a = flow(texCoords,time);
 }

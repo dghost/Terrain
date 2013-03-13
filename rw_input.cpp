@@ -158,7 +158,7 @@ void RenderWidget::keyPressEvent(QKeyEvent *event)
 
         if(event->key() == Qt::Key_1)
         {
-            if (_wtrShader < 2)
+            if (_wtrShader < 1)
                 _wtrShader++;
             else
                 _wtrShader = 0;
