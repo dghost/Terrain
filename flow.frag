@@ -131,6 +131,6 @@ void main(void)
     vec3 vector2 = vec3(0.0,4.0,ewDiff * 15.0);
 
 
-    outColor.rgb = cross(vector1,vector2);
+    outColor.rgb = normalize(cross(vector1,vector2));
     outColor.a = flow(texCoords,time);
 }

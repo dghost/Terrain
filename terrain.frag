@@ -149,5 +149,5 @@ void main(void)
 
 
     outColor.r = height(texCoords,time);
-    outColor.gba = cross(vector1,vector2);
+    outColor.gba = normalize(cross(vector1,vector2));
 }
