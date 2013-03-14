@@ -419,7 +419,7 @@ void RenderWidget::paintGL()
             glUniformMatrix4fv(pPos,1,0,glm::value_ptr(_camera.projMatrix));
             glUniformMatrix4fv(vPos,1,0,glm::value_ptr(_camera.viewMatrix));
 
-            //drawMesh(_flatMesh[_waterMesh],vvPos,vnPos,vtPos);
+            drawMesh(_flatMesh[_waterMesh],vvPos,vnPos,vtPos);
 
             _water[index]->release();
 
@@ -661,13 +661,13 @@ void RenderWidget::drawMesh(mesh_t &mesh,GLuint vert,GLuint norm,GLuint tex)
     if (mesh.vboID != 0)
     {
         glBindBuffer(GL_ARRAY_BUFFER,mesh.vboID);
-        glVertexAttribPointer(vert,3,GL_FLOAT,GL_FALSE,mesh.stride,BUFFER_OFFSET(5 * sizeof(GLfloat)));
-        glVertexAttribPointer(norm,3,GL_FLOAT,GL_FALSE,mesh.stride,BUFFER_OFFSET(2 * sizeof(GLfloat)));
-        glVertexAttribPointer(tex,2,GL_FLOAT,GL_FALSE,mesh.stride,BUFFER_OFFSET(0));
+        glVertexAttribPointer(vert,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(0));
+        glVertexAttribPointer(norm,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(3));
+        glVertexAttribPointer(tex,2,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(6));
         glEnableVertexAttribArray(vert);
         glEnableVertexAttribArray(norm);
         glEnableVertexAttribArray(tex);
-        glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, &mesh.index );
+        glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, mesh.index );
         glDisableVertexAttribArray(vert);
         glDisableVertexAttribArray(norm);
         glDisableVertexAttribArray(tex);
@@ -682,9 +682,9 @@ void RenderWidget::drawFullScreenQuad(GLuint vert)
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
     glBindBuffer(GL_ARRAY_BUFFER,_quad.vboID);
-    glVertexAttribPointer(vert,4,GL_FLOAT,GL_FALSE,_quad.stride,BUFFER_OFFSET(0));
+    glVertexAttribPointer(vert,4,GL_FLOAT,GL_FALSE,0,BUFFER_OFFSET(0));
     glEnableVertexAttribArray(vert);
-    glDrawElements(GL_TRIANGLES, _quad.indexCount, GL_UNSIGNED_INT, &_quad.index );
+    glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, _quad.index );
     glDisableVertexAttribArray(vert);
 
     glBindBuffer(GL_ARRAY_BUFFER,0);
@@ -762,28 +762,28 @@ void RenderWidget::generateQuad(mesh_t &mesh)
         1,1,0,1
     };
 
-    mesh.mesh = (vertex_t *) malloc(sizeof(quad));
+    mesh.mesh = (vertex_t *) malloc(sizeof(GLfloat) * 16);
 
-    memcpy(mesh.mesh,&quad,sizeof(quad));
+    memcpy(mesh.mesh,&quad,sizeof(GLfloat) * 16);
 
     pdebug("Generating Indices");
 
     GLuint indices[4] = {0,1,2,3};
-    mesh.index = (GLuint *) malloc(sizeof(indices));
+    mesh.index = (GLuint *) malloc(sizeof(GLuint) * 4);
     mesh.index = indices;
 
     mesh.indexCount = 4;
     mesh.vertexOffset = 0;
     mesh.normalOffset = 0;
     mesh.texOffset = 0;
-    mesh.stride = sizeof(GLfloat) * 4;
+    mesh.stride = 0;
     pdebug("Generating VBO");
     glGenBuffers(1,&mesh.vboID);
     pdebug(mesh.vboID);
     if (mesh.vboID > 0)
     {
         glBindBuffer(GL_ARRAY_BUFFER,mesh.vboID);
-        glBufferData(GL_ARRAY_BUFFER,sizeof(quad),mesh.mesh,GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER,sizeof(GLfloat) * 16,mesh.mesh,GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER,0);
     }
 }

@@ -1,8 +1,11 @@
 #version 130
 
 in vec3 inVertex;
+in vec3 inNormal;
+in vec2 inTexCoord;
 
 out vec3 texCoords;
+
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
 

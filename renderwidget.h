@@ -35,10 +35,11 @@
 
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 
+/*
 #define GL_RGBA32F                        0x8814
 #define GL_RGBA16F                        0x881A
 #define GL_R32F                           0x822E
-
+*/
 typedef struct {
 
     struct {
