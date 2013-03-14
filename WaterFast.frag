@@ -5,6 +5,7 @@ varying vec3 light_dir;
 uniform sampler2D texture0;
 //uniform sampler2D texture1;
 uniform sampler2D texture2;
+uniform mat4 viewMatrix;
 
 vec4 light_blue = vec4(50.0,50.0,185.0,150.0);
 
@@ -18,7 +19,7 @@ void main(void)
     vec3 n =  texture2D(texture2,texCoords).rgb;
 
     // calculate the normal
-    vec3 normal = gl_NormalMatrix * n;
+    vec3 normal = mat3(viewMatrix) * n;
 
     // normalize vectors for per pixel lighting
     vec3 L = normalize(light_dir);

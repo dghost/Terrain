@@ -2,6 +2,7 @@ varying vec2 texCoords;
 varying vec2 skyCoords;
 //varying vec3 normal;
 varying vec3 light_dir;
+uniform mat4 viewMatrix;
 
 uniform sampler2D texture0;
 uniform sampler2D texture1;
@@ -48,7 +49,7 @@ void main(void)
     }
     color /= 255.0;
 
-    vec3 normal = gl_NormalMatrix * texture2D(texture1,texCoords).gba;
+    vec3 normal = mat3(viewMatrix) * texture2D(texture1,texCoords).gba;
     vec3 L = normalize(light_dir);
     vec3 N = normalize(normal);
     float diffuse = max(dot(N,L),0.0);

@@ -1,6 +1,8 @@
-uniform float in_Time;
-uniform vec2 in_Offsets;
-varying vec4 TexCoord0;
+in float in_Time;
+in vec2 in_Offsets;
+in vec4 TexCoord0;
+
+out vec4 outColor;
 
 // GLSL textureless classic 3D noise "cnoise",
 // with an RSL-style periodic variant "pnoise".
@@ -143,6 +145,6 @@ void main(void)
     vec3 vector2 = vec3(0.0,8.0,ewDiff * 125.0);
 
 
-    gl_FragColor.r = height(texCoords,time);
-    gl_FragColor.gba = cross(vector1,vector2);
+    outColor.r = height(texCoords,time);
+    outColor.gba = cross(vector1,vector2);
 }

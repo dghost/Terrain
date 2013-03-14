@@ -4,6 +4,7 @@ varying vec3 light_dir;
 
 uniform sampler2D texture0;
 uniform sampler2D texture1;
+uniform mat4 viewMatrix;
 
 vec4 green = vec4(34.0,139.0,34.0,255.0);
 vec4 dark_green = vec4(0.0,100.0,0.0,255.0);
@@ -42,7 +43,7 @@ void main(void)
     }
     color /= 255.0;
 
-    vec3 normal = gl_NormalMatrix * texture2D(texture1,texCoords).gba;
+    vec3 normal = mat3(viewMatrix) * texture2D(texture1,texCoords).gba;
     vec3 L = normalize(light_dir);
     vec3 N = normalize(normal);
     float diffuse = max(dot(N,L),0.0);

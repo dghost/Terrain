@@ -19,7 +19,8 @@ TEMPLATE = app
 SOURCES += \
     renderwidget.cpp \
     main.cpp \
-    rw_input.cpp
+    rw_input.cpp \
+    gl_core_3_0.c
 
 HEADERS  += \
     renderwidget.h

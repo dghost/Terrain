@@ -1,6 +1,8 @@
-uniform float in_Time;
-uniform vec2 in_Offsets;
-varying vec4 TexCoord0;
+in float in_Time;
+in vec2 in_Offsets;
+in vec4 TexCoord0;
+
+out vec4 outColor;
 
 
 // Description : Array and textureless GLSL 2D/3D/4D simplex
@@ -120,5 +122,5 @@ void main(void)
    value += snoise(vec3(xCoord * 16.0,yCoord * 16.0,time)) * 1.0 / 16.0;
    value += snoise(vec3(xCoord * 32.0,yCoord * 32.0,time)) * 1.0 / 32.0;
 
-    gl_FragColor = vec4(value);
+    outColor = vec4(value);
 }

@@ -4,31 +4,20 @@
 #define DEBUG
 
 #ifdef DEBUG
-#define debug(x) qDebug() << x
+#define pdebug(x) qDebug() << x
 #else
-#define debug(x) do {} while (0)
+#define pdebug(x) do {} while (0)
 #endif
 
+#define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 
-#ifdef __APPLE__
-//#define GL_GLEXT_PROTOTYPES
-//#include <gl.h>
-//#include <glext.h>
-#else
-//#define GL_GLEXT_PROTOTYPES
-//#include <GL/gl.h>
-//#include <GL/glext.h>
-#endif
-
-
+//#include "gl_core_3_0.h"
 
 #include <QGLWidget>
-#include <qgl.h>
 #include <QTime>
 #include <QElapsedTimer>
 #include <QGLShaderProgram>
 #include <QApplication>
-#include <QGLFunctions>
 #include <QFocusEvent>
 
 #include <QTimerEvent>
@@ -41,6 +30,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/noise.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_operation.hpp>
 
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 
@@ -52,13 +43,13 @@ typedef struct {
 
 
     struct {
-      float u,v;
+      GLfloat u,v;
     }  texture;
     struct {
-      float x,y,z;
+      GLfloat x,y,z;
     }  normal;
     struct {
-      float x,y,z;
+      GLfloat x,y,z;
     } vertex;
 } vertex_t;
 
@@ -106,11 +97,11 @@ protected:
     void keyReleaseEvent(QKeyEvent *event);
     void processInput(float timeSinceLastUpdate);
     void updateCamera();
-    void drawFullScreenQuad();
+    void drawFullScreenQuad(GLuint vert);
     void generateTexture(texture_t texStruct, QGLShaderProgram *shader);
     void generateFlatMesh(mesh_t &mesh, int width, int height, float scale = 1.0);
     void generateSphere(mesh_t &mesh, int width, int height, float radius = 1.0);
-    void drawMesh(mesh_t &mesh);
+    void drawMesh(mesh_t &mesh, GLuint vert, GLuint norm, GLuint tex);
     void drawHUD(void);
     void initTexture(texture_t &texture, int width, int height);
     void focusInEvent(QFocusEvent *event);
@@ -130,6 +121,8 @@ private:
         GLfloat rotHoriz,rotVert;
         GLfloat radius;
         unsigned int mode;
+        glm::mat4 viewMatrix;
+        glm::mat4 projMatrix;
     } _camera;
 
     struct {
@@ -191,7 +184,6 @@ private:
     int _wtrShader;
     int _gndShader;
 
-    QGLFunctions _qgl;
     texture_t _groundTexture[8];
     texture_t _cloudTexture[8];
     texture_t _waterTexture[8];
@@ -210,6 +202,9 @@ private:
         int sec0;
         int count;
     } _fpsInfo;
+
+
+
 };
 
 #endif // RENDERWIDGET_H

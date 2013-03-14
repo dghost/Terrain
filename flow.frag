@@ -1,6 +1,8 @@
-uniform float in_Time;
-uniform vec2 in_Offsets;
-varying vec4 TexCoord0;
+in float in_Time;
+in vec2 in_Offsets;
+in vec4 TexCoord0;
+
+out vec4 outColor;
 
 // GLSL implementation of 2D "flow noise" as presented
 // by Ken Perlin and Fabrice Neyret at Siggraph 2001.
@@ -128,6 +130,6 @@ void main(void)
     vec3 vector2 = vec3(0.0,4.0,ewDiff * 15.0);
 
 
-    gl_FragColor.rgb = cross(vector1,vector2);
-    gl_FragColor.a = flow(texCoords,time);
+    outColor.rgb = cross(vector1,vector2);
+    outColor.a = flow(texCoords,time);
 }

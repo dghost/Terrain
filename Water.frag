@@ -3,6 +3,7 @@ varying vec2 skyCoords;
 //varying vec3 normal;
 varying vec3 eye;
 varying vec3 light_dir;
+uniform mat4 viewMatrix;
 uniform sampler2D texture0;
 uniform sampler2D texture1;
 uniform sampler2D texture2;
@@ -20,7 +21,7 @@ void main(void)
     vec3 n =  texture2D(texture2,texCoords).rgb;
 
     // calculate the normal
-    vec3 normal = gl_NormalMatrix * n;
+    vec3 normal = mat3(viewMatrix) * n;
     // normalize vectors for per pixel lighting
     vec3 L = normalize(light_dir);
     vec3 N = normalize(normal);

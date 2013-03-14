@@ -81,11 +81,11 @@ RenderWidget::~RenderWidget()
 
         if (_flatMesh[i].index != NULL)
             free(_flatMesh[i].index);
-        _qgl.glDeleteBuffers(1,&_groundTexture[i].frameBuffer);
+        glDeleteBuffers(1,&_groundTexture[i].frameBuffer);
         glDeleteTextures(1,&_groundTexture[i].textureHandle);
-        _qgl.glDeleteBuffers(1,&_cloudTexture[i].frameBuffer);
+        glDeleteBuffers(1,&_cloudTexture[i].frameBuffer);
         glDeleteTextures(1,&_cloudTexture[i].textureHandle);
-        _qgl.glDeleteBuffers(1,&_waterTexture[i].frameBuffer);
+        glDeleteBuffers(1,&_waterTexture[i].frameBuffer);
         glDeleteTextures(1,&_waterTexture[i].textureHandle);
     }
 
@@ -122,26 +122,26 @@ void RenderWidget::resizeGL(int width, int height)
     }
 
     _hud.resolution = QString("Resolution: %1 x %2").arg(width).arg(height);
-    debug(_hud.resolution);
+    pdebug(_hud.resolution);
     glViewport(0, 0, width, height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
 
-    GLdouble fW, fH;
-    // 60 degree FOV and fixed depth of 1-200
+    GLfloat fW, fH;
+    // 60 degree FOV and fixed depth of 1-5000
     fH = tan( 60.0 / 360 * pi );
     fW = fH * (float) width / (float) height;
 
-    glFrustum(-fW, fW, -fH, fH, 1.0f, 5000.0f);
-    glMatrixMode(GL_MODELVIEW);
+    _camera.projMatrix = glm::frustum(-fW, fW, -fH, fH, 1.0f, 5000.0f);
+
+
+
 }
 
 void RenderWidget::initializeGL()
 {
-    _qgl.initializeGLFunctions();
+    ogl_LoadFunctions();
     /* capture some debug info */
     _hud.oglVersion = QString("OGL: %1 GLSL: %2").arg((char *) glGetString(GL_VERSION)).arg((char *) glGetString(GL_SHADING_LANGUAGE_VERSION));
-    debug(_hud.oglVersion);
+    pdebug(_hud.oglVersion);
 
     int MaxVertexTextureImageUnits;
     glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &MaxVertexTextureImageUnits);
@@ -151,22 +151,22 @@ void RenderWidget::initializeGL()
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,&MaxFragmnetTextureImageUnits);
 
     _hud.textureUnits = QString("Max TIUS - Frag: %1 Vert: %2 Comb: %3").arg(MaxFragmnetTextureImageUnits).arg(MaxVertexTextureImageUnits).arg(MaxCombinedTextureImageUnits);
-    debug(_hud.textureUnits);
+    pdebug(_hud.textureUnits);
 
     GLint dims[2];
     glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &dims[0]);
 
     _hud.maxSize = QString("Max viewport: %1 x %2").arg(dims[0]).arg(dims[1]);
-    debug(_hud.maxSize);
+    pdebug(_hud.maxSize);
 
     /* generate shaders */
-    debug("Compiling Sky shader...");
+    pdebug("Compiling Sky shader...");
     _sky = new QGLShaderProgram(this);
     _sky->addShaderFromSourceFile(QGLShader::Vertex,QString("Sky.vert"));
     _sky->addShaderFromSourceFile(QGLShader::Fragment,QString("Sky.frag"));
     _sky->link();
 
-    debug("Compiling Ground shader...");
+    pdebug("Compiling Ground shader...");
     _ground[0] = new QGLShaderProgram(this);
     _ground[0]->addShaderFromSourceFile(QGLShader::Vertex,QString("Ground.vert"));
     _ground[0]->addShaderFromSourceFile(QGLShader::Fragment,QString("GroundNoCaustic.frag"));
@@ -177,7 +177,7 @@ void RenderWidget::initializeGL()
     _ground[1]->addShaderFromSourceFile(QGLShader::Fragment,QString("Ground.frag"));
     _ground[1]->link();
 
-    debug("Compiling Water shader...");
+    pdebug("Compiling Water shader...");
     _water[1] = new QGLShaderProgram(this);
     _water[1]->addShaderFromSourceFile(QGLShader::Vertex,QString("Water.vert"));
     _water[1]->addShaderFromSourceFile(QGLShader::Fragment,QString("Water.frag"));
@@ -188,19 +188,19 @@ void RenderWidget::initializeGL()
     _water[0]->addShaderFromSourceFile(QGLShader::Fragment,QString("WaterFast.frag"));
     _water[0]->link();
 
-    debug("Compiling flow shader...");
+    pdebug("Compiling flow shader...");
     _flow = new QGLShaderProgram(this);
     _flow->addShaderFromSourceFile(QGLShader::Vertex,QString("quad.vert"));
     _flow->addShaderFromSourceFile(QGLShader::Fragment,QString("flow.frag"));
     _flow->link();
 
-    debug("Compiling cloud shader...");
+    pdebug("Compiling cloud shader...");
     _clouds = new QGLShaderProgram(this);
     _clouds->addShaderFromSourceFile(QGLShader::Vertex,QString("quad.vert"));
     _clouds->addShaderFromSourceFile(QGLShader::Fragment,QString("clouds.frag"));
     _clouds->link();
 
-    debug("Compiling terrain shader...");
+    pdebug("Compiling terrain shader...");
     _terrain = new QGLShaderProgram(this);
     _terrain->addShaderFromSourceFile(QGLShader::Vertex,QString("quad.vert"));
     _terrain->addShaderFromSourceFile(QGLShader::Fragment,QString("terrain.frag"));
@@ -211,10 +211,10 @@ void RenderWidget::initializeGL()
     for (int i = 0; i < 8 ; i++)
     {
         _hud.sizes[i] = QString("%1 x %1").arg(size);
-        debug(QString("Generating flat mesh of size %1").arg(size));
+        pdebug(QString("Generating flat mesh of size %1").arg(size));
         generateFlatMesh(_flatMesh[i],size,size,2048.0 / size);
 
-        debug(QString("Generating textures of size %1").arg(size));
+        pdebug(QString("Generating textures of size %1").arg(size));
         initTexture(_waterTexture[i],size,size);
         initTexture(_groundTexture[i],size,size);
         initTexture(_cloudTexture[i],size,size);
@@ -222,7 +222,7 @@ void RenderWidget::initializeGL()
         size += 256;
     }
 
-    debug("Generating sphere mesh...");
+    pdebug("Generating sphere mesh...");
     generateSphere(_skysphere,16,16,1.0);
 
 
@@ -235,12 +235,12 @@ void RenderWidget::initializeGL()
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    debug("Generating textures...");
+    pdebug("Generating textures...");
     /* initialize textures for FBO's */
 
 
     /* generate the initial ground value */
-    debug("Generating ground textures");
+    pdebug("Generating ground textures");
     for (int i = 0 ; i < 8 ; i++)
     {
         generateTexture(_groundTexture[i],_terrain);
@@ -310,7 +310,6 @@ void RenderWidget::paintGL()
     renderTimer.start();
 
     // standard setup
-    glLoadIdentity();
 
     // update the camera position
     updateCamera();
@@ -338,11 +337,11 @@ void RenderWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-    _qgl.glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D,_cloudTexture[_cldTexture].textureHandle);
-    _qgl.glActiveTexture(GL_TEXTURE1);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D,_groundTexture[_gndTexture].textureHandle);
-    _qgl.glActiveTexture(GL_TEXTURE2);
+    glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D,_waterTexture[_wtrTexture].textureHandle);
 
 
@@ -352,7 +351,7 @@ void RenderWidget::paintGL()
         if (_flatMesh[_groundMesh].mesh != NULL && _flatMesh[_groundMesh].index != NULL)
         {
             int index = _gndShader;
-            _qgl.glBindBuffer(GL_ARRAY_BUFFER,_flatMesh[_groundMesh].vboID);
+            glBindBuffer(GL_ARRAY_BUFFER,_flatMesh[_groundMesh].vboID);
 
 
             /* draw the terrain */
@@ -363,14 +362,21 @@ void RenderWidget::paintGL()
             GLint t1Loc = _ground[index]->uniformLocation("texture1");
             GLint t2Loc = _ground[index]->uniformLocation("texture2");
             GLint lPos = _ground[index]->uniformLocation("light_pos");
+            GLint vPos = _ground[index]->uniformLocation("viewMatrix");
+            GLint pPos = _ground[index]->uniformLocation("projMatrix");
 
-            _ground[index]->setUniformValue(t0Loc,0);
-            _ground[index]->setUniformValue(t1Loc,1);
-            _ground[index]->setUniformValue(t2Loc,2);
-            _ground[index]->setUniformValueArray(lPos,glm::value_ptr(lightPosition),1,3);
+            GLuint vnPos = _ground[index]->attributeLocation("inNormal");
+            GLuint vtPos = _ground[index]->attributeLocation("inTexCoord");
+            GLuint vvPos = _ground[index]->attributeLocation("inVertex");
 
+            glUniform1i(t0Loc,0);
+            glUniform1i(t1Loc,1);
+            glUniform1i(t2Loc,2);
+            glUniform3fv(lPos,1,glm::value_ptr(lightPosition));
+            glUniformMatrix4fv(pPos,1,0,glm::value_ptr(_camera.projMatrix));
+            glUniformMatrix4fv(vPos,1,0,glm::value_ptr(_camera.viewMatrix));
 
-            drawMesh(_flatMesh[_groundMesh]);
+            //drawMesh(_flatMesh[_groundMesh],vvPos,vnPos,vtPos);
             _ground[index]->release();
             trisRendered += _flatMesh[_groundMesh].indexCount / 3;
 
@@ -385,7 +391,7 @@ void RenderWidget::paintGL()
         if (_flatMesh[_waterMesh].mesh != NULL && _flatMesh[_waterMesh].index != NULL)
         {
             int index = _wtrShader;
-            _qgl.glBindBuffer(GL_ARRAY_BUFFER,_flatMesh[_waterMesh].vboID);
+            glBindBuffer(GL_ARRAY_BUFFER,_flatMesh[_waterMesh].vboID);
             if (_modes.blendWater)
             {
                 glEnable(GL_BLEND);
@@ -397,12 +403,21 @@ void RenderWidget::paintGL()
             GLint t1Loc = _water[index]->uniformLocation("texture1");
             GLint t2Loc = _water[index]->uniformLocation("texture2");
             GLint lPos = _water[index]->uniformLocation("light_pos");
-            _water[index]->setUniformValue(t0Loc,0);
-            _water[index]->setUniformValue(t1Loc,1);
-            _water[index]->setUniformValue(t2Loc,2);
-            _water[index]->setUniformValueArray(lPos,glm::value_ptr(lightPosition),1,3);
+            GLint vPos = _water[index]->uniformLocation("viewMatrix");
+            GLint pPos = _water[index]->uniformLocation("projMatrix");
 
-            drawMesh(_flatMesh[_waterMesh]);
+            GLuint vnPos = _water[index]->attributeLocation("inNormal");
+            GLuint vtPos = _water[index]->attributeLocation("inTexCoord");
+            GLuint vvPos = _water[index]->attributeLocation("inVertex");
+
+            glUniform1i(t0Loc,0);
+            glUniform1i(t1Loc,1);
+            glUniform1i(t2Loc,2);
+            glUniform3fv(lPos,1,glm::value_ptr(lightPosition));
+            glUniformMatrix4fv(pPos,1,0,glm::value_ptr(_camera.projMatrix));
+            glUniformMatrix4fv(vPos,1,0,glm::value_ptr(_camera.viewMatrix));
+
+            //drawMesh(_flatMesh[_waterMesh],vvPos,vnPos,vtPos);
 
             _water[index]->release();
 
@@ -420,19 +435,23 @@ void RenderWidget::paintGL()
 
     if (_skysphere.mesh != NULL && _skysphere.index != NULL)
     {
-        _qgl.glBindBuffer(GL_ARRAY_BUFFER,_skysphere.vboID);
+        glBindBuffer(GL_ARRAY_BUFFER,_skysphere.vboID);
 
         _sky->bind();
         GLint t0Loc = _sky->uniformLocation("texture0");
-
-        _sky->setUniformValue(t0Loc,0);
-
-        GLint tLoc = _sky->uniformLocation("in_Time");
-        _qgl.glUniform1f(tLoc,_mesh.timeElapsed);
         GLint oLoc = _sky->uniformLocation("in_Offsets");
-        _qgl.glUniform2fv(oLoc,1,glm::value_ptr(_mesh.texOffsets));
+        GLint vPos = _sky->uniformLocation("viewMatrix");
+        GLint pPos = _sky->uniformLocation("projMatrix");
+        GLuint vnPos = _sky->attributeLocation("inNormal");
+        GLuint vtPos = _sky->attributeLocation("inTexCoord");
+        GLuint vvPos = _sky->attributeLocation("inVertex");
 
-        drawMesh(_skysphere);
+        glUniform1i(t0Loc,0);
+        glUniformMatrix4fv(pPos,1,0,glm::value_ptr(_camera.projMatrix));
+        glUniformMatrix4fv(vPos,1,0,glm::value_ptr(_camera.viewMatrix));
+        glUniform2fv(oLoc,1,glm::value_ptr(_mesh.texOffsets));
+
+        drawMesh(_skysphere,vvPos,vnPos,vtPos);
 
         _sky->release();
 
@@ -440,8 +459,8 @@ void RenderWidget::paintGL()
 
 
     }
-    _qgl.glBindBuffer(GL_ARRAY_BUFFER,0);
-    _qgl.glActiveTexture(GL_TEXTURE0);
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+    glActiveTexture(GL_TEXTURE0);
     glFinish();
 
 
@@ -606,11 +625,11 @@ void RenderWidget::updateCamera()
     }
 
     // load the identity matrix and set up view correctly
-    glLoadIdentity();
-    glRotatef(90,-1,0,0);
-    glRotatef(_camera.tilt,-1,0,0);
-    glRotatef(_camera.pan,0,0,-1);
-    glTranslatef(-_camera.x,-_camera.y,-_camera.z);
+    glm::mat4 view = glm::mat4(1);
+    view = glm::rotate(view,90.0f,glm::vec3(-1,0,0));
+    view = glm::rotate(view,_camera.tilt,glm::vec3(-1,0,0));
+    view = glm::rotate(view,_camera.pan,glm::vec3(0,0,-1));
+    _camera.viewMatrix = glm::translate(view,glm::vec3(-_camera.x,-_camera.y,-_camera.z));
 }
 
 
@@ -635,33 +654,34 @@ void RenderWidget::setTimeScale(float timeScale)
 
 
 // draw a mesh
-void RenderWidget::drawMesh(mesh_t &mesh)
+void RenderWidget::drawMesh(mesh_t &mesh,GLuint vert,GLuint norm,GLuint tex)
 {
-    if (mesh.vboID == 0)
+    if (mesh.vboID != 0)
     {
-        glInterleavedArrays(GL_T2F_N3F_V3F,0,mesh.mesh);
+        glVertexAttribPointer(vert,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(5 * sizeof(GLfloat)));
+        glVertexAttribPointer(norm,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(2 * sizeof(GLfloat)));
+        glVertexAttribPointer(tex,2,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(0));
         glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, mesh.index );
-    } else {
-        glInterleavedArrays(GL_T2F_N3F_V3F,0,NULL);
-        glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, mesh.index );
-        //       _qgl.glBindBuffer(GL_ARRAY_BUFFER,0);
+
     }
+
 }
 
 // draw a full screen quad
-void RenderWidget::drawFullScreenQuad()
+void RenderWidget::drawFullScreenQuad(GLuint vert)
 {
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-    glBegin(GL_TRIANGLE_STRIP);
-    glTexCoord2d(0,0);
-    glVertex3d(-1,-1,0);
-    glTexCoord2d(1,0);
-    glVertex3d(1,-1,0);
-    glTexCoord2d(0,1);
-    glVertex3d(-1,1,0);
-    glTexCoord2d(1,1);
-    glVertex3d(1,1,0);
-    glEnd();
+
+    GLfloat quad[16] = {
+        -1,-1,0,1,
+        1,-1,0,1,
+        -1,1,0,1,
+        1,1,0,1
+    };
+
+
+    glVertexAttribPointer(vert,4,GL_FLOAT,GL_FALSE,4 * sizeof(GLfloat),&quad);
+    glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 }
 
 // render to a texture
@@ -672,24 +692,24 @@ void RenderWidget::generateTexture(texture_t texStruct, QGLShaderProgram *shader
     glGetIntegerv(GL_FRAMEBUFFER_BINDING,&currentFrameBuffer);
 
     // bind to framebuffer / texture
-    _qgl.glBindFramebuffer(GL_FRAMEBUFFER, texStruct.frameBuffer);
-    _qgl.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texStruct.textureHandle, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, texStruct.frameBuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texStruct.textureHandle, 0);
 
     // change viewport size
     glViewport(0,0,texStruct.width,texStruct.height);
 
     shader->bind();
     GLint tLoc = shader->uniformLocation("in_Time");
-    _qgl.glUniform1f(tLoc,_mesh.timeElapsed);
+    glUniform1f(tLoc,_mesh.timeElapsed);
     GLint oLoc = shader->uniformLocation("in_Offsets");
-    _qgl.glUniform2fv(oLoc,1,glm::value_ptr(_mesh.texOffsets));
-
-    drawFullScreenQuad();
+    glUniform2fv(oLoc,1,glm::value_ptr(_mesh.texOffsets));
+    GLuint vPos = shader->attributeLocation("inVertex");
+    drawFullScreenQuad(vPos);
 
     shader->release();
 
     // restore window to previous state
-    _qgl.glBindFramebuffer(GL_FRAMEBUFFER, currentFrameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, currentFrameBuffer);
     glViewport(0, 0, width(), height());
 
 }
@@ -712,11 +732,11 @@ void RenderWidget::initTexture(texture_t &texture, int width, int height)
     glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA32F, texture.width, texture.height, 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     // generate the framebuffer object
-    _qgl.glGenFramebuffers(1, &texture.frameBuffer);
+    glGenFramebuffers(1, &texture.frameBuffer);
 
     // unbind all
     glBindTexture(GL_TEXTURE_2D,0);
-    _qgl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
 
@@ -728,7 +748,7 @@ void RenderWidget::generateFlatMesh(mesh_t &mesh, int width, int height, float s
     if (mesh.index != NULL)
         free(mesh.index);
 
-    debug("Generating vertices");
+    pdebug("Generating vertices");
     mesh.mesh = (vertex_t *) malloc(sizeof(vertex_t) * (width + 1) * (height + 1));
     if (mesh.mesh != NULL)
     {
@@ -736,7 +756,7 @@ void RenderWidget::generateFlatMesh(mesh_t &mesh, int width, int height, float s
         {
             for(int j = 0 ; j <= height ; j++)
             {
-                //  qDebug() << i << j;
+                //  qpdebug() << i << j;
                 vertex_t temp;
                 temp.vertex.x = (i - width / 2.0) * scale;
                 temp.vertex.y = (j - height / 2.0) * scale;
@@ -752,7 +772,7 @@ void RenderWidget::generateFlatMesh(mesh_t &mesh, int width, int height, float s
     }
 
     int numTris = height * width * 3 * 2;
-    debug("Generating Indices");
+    pdebug("Generating Indices");
 
     mesh.index = (GLuint *) malloc(sizeof(int) * numTris);
     int count = 0;
@@ -799,14 +819,14 @@ void RenderWidget::generateFlatMesh(mesh_t &mesh, int width, int height, float s
     mesh.normalOffset = 4;
     mesh.texOffset = 7;
     mesh.stride = sizeof(vertex_t);
-    debug("Generating VBO");
-    _qgl.glGenBuffers(1,&mesh.vboID);
-    debug(mesh.vboID);
+    pdebug("Generating VBO");
+    glGenBuffers(1,&mesh.vboID);
+    pdebug(mesh.vboID);
     if (mesh.vboID > 0)
     {
-        _qgl.glBindBuffer(GL_ARRAY_BUFFER,mesh.vboID);
-        _qgl.glBufferData(GL_ARRAY_BUFFER,sizeof(vertex_t) * (width + 1) * (height + 1),mesh.mesh,GL_STATIC_DRAW);
-        _qgl.glBindBuffer(GL_ARRAY_BUFFER,0);
+        glBindBuffer(GL_ARRAY_BUFFER,mesh.vboID);
+        glBufferData(GL_ARRAY_BUFFER,sizeof(vertex_t) * (width + 1) * (height + 1),mesh.mesh,GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER,0);
     }
 }
 
@@ -892,13 +912,13 @@ void RenderWidget::generateSphere(mesh_t &mesh, int width, int height, float rad
 
     mesh.indexCount = t;
 
-    _qgl.glGenBuffers(1,&mesh.vboID);
-    debug(mesh.vboID);
+    glGenBuffers(1,&mesh.vboID);
+    pdebug(mesh.vboID);
     if (mesh.vboID > 0)
     {
-        _qgl.glBindBuffer(GL_ARRAY_BUFFER,mesh.vboID);
-        _qgl.glBufferData(GL_ARRAY_BUFFER,sizeof(vertex_t) * nvec,mesh.mesh,GL_STATIC_DRAW);
-        _qgl.glBindBuffer(GL_ARRAY_BUFFER,0);
+        glBindBuffer(GL_ARRAY_BUFFER,mesh.vboID);
+        glBufferData(GL_ARRAY_BUFFER,sizeof(vertex_t) * nvec,mesh.mesh,GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER,0);
     }
 }
 
