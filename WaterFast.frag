@@ -37,5 +37,5 @@ void main(void)
     // Ambient light is 0.4, specular and diffuse are multiplied by value indicating if cloud is overhead or not
     gl_FragColor = color;
     // set the transparency based on how much ambient light is hitting it
-    gl_FragColor.a = (0.6 + specular - max(value * 0.2,0.0));
+    gl_FragColor.a = (0.7 + specular - max(value * 0.3,0.0));
 }
