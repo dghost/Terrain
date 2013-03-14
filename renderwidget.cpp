@@ -682,7 +682,7 @@ void RenderWidget::drawFullScreenQuad(GLuint vert)
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
     glBindBuffer(GL_ARRAY_BUFFER,_quad.vboID);
-    glVertexAttribPointer(vert,4,GL_FLOAT,GL_FALSE,0,BUFFER_OFFSET(0));
+    glVertexAttribPointer(vert,4,GL_FLOAT,GL_FALSE,4,BUFFER_OFFSET(0));
     glEnableVertexAttribArray(vert);
     glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, _quad.index );
     glDisableVertexAttribArray(vert);
@@ -703,6 +703,12 @@ void RenderWidget::generateTexture(texture_t texStruct, QGLShaderProgram *shader
 
     // change viewport size
     glViewport(0,0,texStruct.width,texStruct.height);
+
+    GLenum res = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (res != GL_FRAMEBUFFER_COMPLETE)
+    {
+        pdebug(QString("Error creating framebuffer object"));
+    }
 
     shader->bind();
     GLint tLoc = shader->uniformLocation("in_Time");
@@ -740,6 +746,7 @@ void RenderWidget::initTexture(texture_t &texture, int width, int height)
     // generate the framebuffer object
     glGenFramebuffers(1, &texture.frameBuffer);
 
+    pdebug(QString("Generated texture %1 and FBO %2").arg(texture.textureHandle).arg(texture.frameBuffer));
     // unbind all
     glBindTexture(GL_TEXTURE_2D,0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -747,7 +754,7 @@ void RenderWidget::initTexture(texture_t &texture, int width, int height)
 }
 
 
-void RenderWidget::generateQuad(mesh_t &mesh)
+void RenderWidget::generateQuad(quad_t &mesh)
 {
     if (mesh.mesh != NULL)
         free(mesh.mesh);
@@ -762,21 +769,24 @@ void RenderWidget::generateQuad(mesh_t &mesh)
         1,1,0,1
     };
 
-    mesh.mesh = (vertex_t *) malloc(sizeof(GLfloat) * 16);
+    mesh.mesh = (GLfloat *) malloc(sizeof(GLfloat) * 16);
 
-    memcpy(mesh.mesh,&quad,sizeof(GLfloat) * 16);
+    for(int i = 0 ; i < 16 ; i++)
+    {
+        mesh.mesh[i] = quad[i];
+    }
 
     pdebug("Generating Indices");
 
-    GLuint indices[4] = {0,1,2,3};
+ //   GLuint indices[4] = {0,1,2,3};
     mesh.index = (GLuint *) malloc(sizeof(GLuint) * 4);
-    mesh.index = indices;
+    mesh.index[0] = 0;
+    mesh.index[1] = 1;
+    mesh.index[2] = 2;
+    mesh.index[3] = 3;
 
     mesh.indexCount = 4;
     mesh.vertexOffset = 0;
-    mesh.normalOffset = 0;
-    mesh.texOffset = 0;
-    mesh.stride = 0;
     pdebug("Generating VBO");
     glGenBuffers(1,&mesh.vboID);
     pdebug(mesh.vboID);

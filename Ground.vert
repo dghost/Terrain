@@ -6,6 +6,7 @@ in vec2 inTexCoord;
 
 
 uniform sampler2D texture1;
+
 uniform vec3 light_pos;
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
