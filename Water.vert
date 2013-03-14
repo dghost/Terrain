@@ -25,7 +25,7 @@ void main(void)
     // get the coordinates for the mesh
     texCoords = inTexCoord;
     // read in the texture value
-    float tex = texture2D(texture2,texCoords).a;
+    float tex = texture2D(texture2,inTexCoord).a;
 
 
     // get the coordinates for the clouds

@@ -26,7 +26,7 @@ void main(void)
 
     vec4 pos = vec4(inVertex,1.0);
     light_dir = vec3(viewMatrix * vec4(light_pos,0.0));
-    float offset = texture2D(texture1,texCoords).x;
+    float offset = texture2D(texture1,inTexCoord).x;
     float zPos = (offset * offset + offset) * 125.0;
     pos.z += zPos;
     gl_Position = projMatrix * viewMatrix * pos;

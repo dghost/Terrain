@@ -661,9 +661,9 @@ void RenderWidget::drawMesh(mesh_t &mesh,GLuint vert,GLuint norm,GLuint tex)
     if (mesh.vboID != 0)
     {
         glBindBuffer(GL_ARRAY_BUFFER,mesh.vboID);
-        glVertexAttribPointer(vert,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(0));
-        glVertexAttribPointer(norm,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(3));
-        glVertexAttribPointer(tex,2,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(6));
+        glVertexAttribPointer(vert,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(0 ));
+        glVertexAttribPointer(norm,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(3* sizeof(GLfloat)));
+        glVertexAttribPointer(tex,2,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(6* sizeof(GLfloat)));
         glEnableVertexAttribArray(vert);
         glEnableVertexAttribArray(norm);
         glEnableVertexAttribArray(tex);
@@ -682,7 +682,7 @@ void RenderWidget::drawFullScreenQuad(GLuint vert)
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
     glBindBuffer(GL_ARRAY_BUFFER,_quad.vboID);
-    glVertexAttribPointer(vert,4,GL_FLOAT,GL_FALSE,4,BUFFER_OFFSET(0));
+    glVertexAttribPointer(vert,4,GL_FLOAT,GL_FALSE,0,BUFFER_OFFSET(0));
     glEnableVertexAttribArray(vert);
     glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, _quad.index );
     glDisableVertexAttribArray(vert);
@@ -696,7 +696,7 @@ void RenderWidget::generateTexture(texture_t texStruct, QGLShaderProgram *shader
     // save state
     GLint currentFrameBuffer = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING,&currentFrameBuffer);
-
+    glBindTexture(GL_TEXTURE_2D,texStruct.textureHandle);
     // bind to framebuffer / texture
     glBindFramebuffer(GL_FRAMEBUFFER, texStruct.frameBuffer);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texStruct.textureHandle, 0);
@@ -722,6 +722,7 @@ void RenderWidget::generateTexture(texture_t texStruct, QGLShaderProgram *shader
 
     // restore window to previous state
     glBindFramebuffer(GL_FRAMEBUFFER, currentFrameBuffer);
+        glBindTexture(GL_TEXTURE_2D,0);
     glViewport(0, 0, width(), height());
 
 }
@@ -741,12 +742,13 @@ void RenderWidget::initTexture(texture_t &texture, int width, int height)
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR); // Linear Filtering
 
     // Give an empty image to OpenGL
-    glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA32F, texture.width, texture.height, 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA16F, texture.width, texture.height, 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     // generate the framebuffer object
     glGenFramebuffers(1, &texture.frameBuffer);
 
     pdebug(QString("Generated texture %1 and FBO %2").arg(texture.textureHandle).arg(texture.frameBuffer));
+
     // unbind all
     glBindTexture(GL_TEXTURE_2D,0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
