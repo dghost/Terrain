@@ -2194,11 +2194,11 @@ int ogl_LoadFunctions()
 	int numFailed = 0;
 	ClearExtensionVars();
 	
-	_ptrc_glGetIntegerv = IntGetProcAddress("glGetIntegerv");
-	if(!_ptrc_glGetIntegerv) return ogl_LOAD_FAILED;
-	_ptrc_glGetStringi = IntGetProcAddress("glGetStringi");
-	if(!_ptrc_glGetStringi) return ogl_LOAD_FAILED;
-	
+    _ptrc_glGetIntegerv = (void (CODEGEN_FUNCPTR *)(GLenum, GLint*) )IntGetProcAddress("glGetIntegerv");
+    if(!_ptrc_glGetIntegerv) return ogl_LOAD_FAILED;
+    _ptrc_glGetStringi = (const GLubyte* (CODEGEN_FUNCPTR *)(GLenum, GLuint) )IntGetProcAddress("glGetStringi");
+    if(!_ptrc_glGetStringi) return ogl_LOAD_FAILED;
+
 	ProcExtsFromExtList();
 	numFailed = Load_Version_3_0();
 	

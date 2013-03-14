@@ -756,7 +756,7 @@ void RenderWidget::initTexture(texture_t &texture, int width, int height)
 }
 
 
-void RenderWidget::generateQuad(quad_t &mesh)
+void RenderWidget::generateQuad(fsquad_t &mesh)
 {
     if (mesh.mesh != NULL)
         free(mesh.mesh);
