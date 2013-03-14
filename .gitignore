@@ -1,9 +1,14 @@
 *.user
 *.o
 moc_*
+*.obj
+[Dd]ebug
+[Rr]elease
+Makefile*
 
-Makefile
 
+*.pdb
+*.exe
 Terrain
 
 
