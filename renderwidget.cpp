@@ -281,12 +281,12 @@ void RenderWidget::timerEvent ( QTimerEvent * event )
             _mesh.timeElapsed += timePassed;
             _mesh.texOffsets += glm::vec2(0.1,0.02) * timePassed;
 
-       //     if (lightPosition.x > 1500 || lightPosition.x < -1500) {
+            //     if (lightPosition.x > 1500 || lightPosition.x < -1500) {
 
-       //         _lightMovement = glm::vec3(-_lightMovement.x,-_lightMovement.y,-_lightMovement.z);
-       //     }
+            //         _lightMovement = glm::vec3(-_lightMovement.x,-_lightMovement.y,-_lightMovement.z);
+            //     }
 
-       //     lightPosition += _lightMovement;
+            //     lightPosition += _lightMovement;
 
             lightPosition.x = 1500 * cos(_mesh.timeElapsed);
             lightPosition.z = 1500 * fabs(sin(_mesh.timeElapsed));
@@ -351,7 +351,7 @@ void RenderWidget::paintGL()
         if (_flatMesh[_groundMesh].mesh != NULL && _flatMesh[_groundMesh].index != NULL)
         {
             int index = _gndShader;
-            glBindBuffer(GL_ARRAY_BUFFER,_flatMesh[_groundMesh].vboID);
+           // glBindBuffer(GL_ARRAY_BUFFER,_flatMesh[_groundMesh].vboID);
 
 
             /* draw the terrain */
@@ -391,7 +391,7 @@ void RenderWidget::paintGL()
         if (_flatMesh[_waterMesh].mesh != NULL && _flatMesh[_waterMesh].index != NULL)
         {
             int index = _wtrShader;
-            glBindBuffer(GL_ARRAY_BUFFER,_flatMesh[_waterMesh].vboID);
+            //glBindBuffer(GL_ARRAY_BUFFER,_flatMesh[_waterMesh].vboID);
             if (_modes.blendWater)
             {
                 glEnable(GL_BLEND);
@@ -435,7 +435,7 @@ void RenderWidget::paintGL()
 
     if (_skysphere.mesh != NULL && _skysphere.index != NULL)
     {
-        glBindBuffer(GL_ARRAY_BUFFER,_skysphere.vboID);
+
 
         _sky->bind();
         GLint t0Loc = _sky->uniformLocation("texture0");
@@ -459,7 +459,7 @@ void RenderWidget::paintGL()
 
 
     }
-    glBindBuffer(GL_ARRAY_BUFFER,0);
+
     glActiveTexture(GL_TEXTURE0);
     glFinish();
 
@@ -481,8 +481,8 @@ void RenderWidget::drawHUD()
     QString text;
     int offset = 20;
 
-//    renderText(10,offset,_hud.oglVersion,this->font());
-//    offset += 20;
+    //    renderText(10,offset,_hud.oglVersion,this->font());
+    //    offset += 20;
 
     renderText(10,offset,_hud.resolution,this->font());
     offset += 20;
@@ -658,11 +658,18 @@ void RenderWidget::drawMesh(mesh_t &mesh,GLuint vert,GLuint norm,GLuint tex)
 {
     if (mesh.vboID != 0)
     {
+            glBindBuffer(GL_ARRAY_BUFFER,mesh.vboID);
         glVertexAttribPointer(vert,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(5 * sizeof(GLfloat)));
         glVertexAttribPointer(norm,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(2 * sizeof(GLfloat)));
         glVertexAttribPointer(tex,2,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(0));
-        glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, mesh.index );
-
+        glEnableVertexAttribArray(vert);
+        glEnableVertexAttribArray(norm);
+        glEnableVertexAttribArray(tex);
+        glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, &mesh.index );
+        glDisableVertexAttribArray(vert);
+        glDisableVertexAttribArray(norm);
+        glDisableVertexAttribArray(tex);
+            glBindBuffer(GL_ARRAY_BUFFER,0);
     }
 
 }
@@ -681,7 +688,9 @@ void RenderWidget::drawFullScreenQuad(GLuint vert)
 
 
     glVertexAttribPointer(vert,4,GL_FLOAT,GL_FALSE,4 * sizeof(GLfloat),&quad);
+    glEnableVertexAttribArray(vert);
     glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+    glDisableVertexAttribArray(vert);
 }
 
 // render to a texture

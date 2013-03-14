@@ -1,13 +1,14 @@
-varying vec2 texCoords;
-varying vec2 skyCoords;
+in vec2 texCoords;
+in vec2 skyCoords;
 //varying vec3 normal;
-varying vec3 light_dir;
+in vec3 light_dir;
 uniform mat4 viewMatrix;
 
 uniform sampler2D texture0;
 uniform sampler2D texture1;
 uniform sampler2D texture2;
 
+out vec4 outColor;
 vec4 green = vec4(34.0,139.0,34.0,255.0);
 vec4 dark_green = vec4(0.0,100.0,0.0,255.0);
 vec4 brown = vec4(210.0,180.0,140.0,255.0);
@@ -54,5 +55,5 @@ void main(void)
     vec3 N = normalize(normal);
     float diffuse = max(dot(N,L),0.0);
 
-    gl_FragColor = color * 0.25 + (color) * diffuse * caustic * cloudWeight;
+    outColor = color * 0.25 + (color) * diffuse * caustic * cloudWeight;
 }

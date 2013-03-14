@@ -1,12 +1,13 @@
-varying vec2 texCoords;
-varying vec2 skyCoords;
-varying vec3 eye;
-varying vec3 light_dir;
+in vec2 texCoords;
+in vec2 skyCoords;
+in vec3 eye;
+in vec3 light_dir;
 uniform sampler2D texture0;
 //uniform sampler2D texture1;
 uniform sampler2D texture2;
 uniform mat4 viewMatrix;
 
+out vec4 outColor;
 vec4 light_blue = vec4(50.0,50.0,185.0,150.0);
 
 void main(void)
@@ -36,7 +37,7 @@ void main(void)
 
     // write the final color
     // Ambient light is 0.4, specular and diffuse are multiplied by value indicating if cloud is overhead or not
-    gl_FragColor = color;
+    outColor = color;
     // set the transparency based on how much ambient light is hitting it
-    gl_FragColor.a = (0.7 + specular - max(value * 0.3,0.0));
+    outColor.a = (0.7 + specular - max(value * 0.3,0.0));
 }

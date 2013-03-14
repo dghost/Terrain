@@ -1,5 +1,5 @@
-in float in_Time;
-in vec2 in_Offsets;
+uniform float in_Time;
+uniform vec2 in_Offsets;
 in vec4 TexCoord0;
 
 out vec4 outColor;

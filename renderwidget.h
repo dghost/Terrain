@@ -11,7 +11,7 @@
 
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 
-//#include "gl_core_3_0.h"
+#include "gl_core_3_0.h"
 
 #include <QGLWidget>
 #include <QTime>

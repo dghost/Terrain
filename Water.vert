@@ -1,6 +1,6 @@
-attribute vec3 inVertex;
-attribute vec3 inNormal;
-attribute vec2 inTexCoord;
+in vec3 inVertex;
+in vec3 inNormal;
+in vec2 inTexCoord;
 
 
 
@@ -11,11 +11,11 @@ uniform vec3 light_pos;
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
 
-varying vec2 skyCoords;
-varying vec2 texCoords;
-varying vec3 normal;
-varying vec3 eye;
-varying vec3 light_dir;
+out vec2 skyCoords;
+out vec2 texCoords;
+out vec3 normal;
+out vec3 eye;
+out vec3 light_dir;
 
 
 void main(void)

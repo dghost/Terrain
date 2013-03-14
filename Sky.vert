@@ -1,6 +1,6 @@
-attribute vec3 inVertex;
+in vec3 inVertex;
 
-varying vec3 texCoords;
+out vec3 texCoords;
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
 

@@ -1,8 +1,9 @@
-varying vec3 texCoords;
+in vec3 texCoords;
 uniform float in_Time;
 uniform vec2 in_Offsets;
 uniform sampler2D texture0;
 
+out vec4 outColor;
 
 vec4 light_sky = vec4(0.0,102.0,255.0,255.0);
 vec4 dark_sky = vec4(0.0,0.0,255.0,255.0);
@@ -28,6 +29,6 @@ void main(void)
 
     color /= 255.0;
     color = vec4(0.96,0.96,0.96,1.0) * (value) + color * (1.0 - value);
-    gl_FragColor = color;
+    outColor = color;
 
 }
