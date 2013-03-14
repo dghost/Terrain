@@ -9,9 +9,10 @@ int main(int argc, char *argv[])
   // QGLFormat glFormat = QGLFormat(QGL::DoubleBuffer | QGL::DirectRendering | QGL::DeprecatedFunctions);
     QGLFormat glFormat = QGLFormat(QGL::DoubleBuffer | QGL::DirectRendering);
 
-    glFormat.setVersion( 3, 0 );
-//    glFormat.setDepthBufferSize(32);
-   // glFormat.setProfile( QGLFormat::CompatibilityProfile ); // Requires >=Qt-4.8.0
+#ifdef __APPLE__
+    glFormat.setVersion( 3, 2 );
+#endif
+
     glFormat.setProfile(QGLFormat::CoreProfile);
     RenderWidget w(glFormat);
     w.show();

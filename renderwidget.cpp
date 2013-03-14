@@ -141,7 +141,9 @@ void RenderWidget::resizeGL(int width, int height)
 
 void RenderWidget::initializeGL()
 {
+#ifndef __APPLE__
     ogl_LoadFunctions();
+#endif
     /* capture some debug info */
     _hud.oglVersion = QString("OGL: %1 GLSL: %2").arg((char *) glGetString(GL_VERSION)).arg((char *) glGetString(GL_SHADING_LANGUAGE_VERSION));
     pdebug(_hud.oglVersion);
