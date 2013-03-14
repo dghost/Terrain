@@ -41,16 +41,17 @@
 
 typedef struct {
 
+    struct {
+      GLfloat x,y,z;
+    } vertex;
+    struct {
+      GLfloat x,y,z;
+    }  normal;
 
     struct {
       GLfloat u,v;
     }  texture;
-    struct {
-      GLfloat x,y,z;
-    }  normal;
-    struct {
-      GLfloat x,y,z;
-    } vertex;
+
 } vertex_t;
 
 typedef struct {

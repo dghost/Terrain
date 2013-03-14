@@ -376,7 +376,7 @@ void RenderWidget::paintGL()
             glUniformMatrix4fv(pPos,1,0,glm::value_ptr(_camera.projMatrix));
             glUniformMatrix4fv(vPos,1,0,glm::value_ptr(_camera.viewMatrix));
 
-            //drawMesh(_flatMesh[_groundMesh],vvPos,vnPos,vtPos);
+            drawMesh(_flatMesh[_groundMesh],vvPos,vnPos,vtPos);
             _ground[index]->release();
             trisRendered += _flatMesh[_groundMesh].indexCount / 3;
 
@@ -659,9 +659,9 @@ void RenderWidget::drawMesh(mesh_t &mesh,GLuint vert,GLuint norm,GLuint tex)
     if (mesh.vboID != 0)
     {
             glBindBuffer(GL_ARRAY_BUFFER,mesh.vboID);
-        glVertexAttribPointer(vert,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(5 * sizeof(GLfloat)));
-        glVertexAttribPointer(norm,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(2 * sizeof(GLfloat)));
-        glVertexAttribPointer(tex,2,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(0));
+        glVertexAttribPointer(vert,3,GL_FLOAT,GL_FALSE,mesh.stride,BUFFER_OFFSET(mesh.vertexOffset));
+        glVertexAttribPointer(norm,3,GL_FLOAT,GL_FALSE,mesh.stride,BUFFER_OFFSET(mesh.normalOffset));
+        glVertexAttribPointer(tex,2,GL_FLOAT,GL_FALSE,mesh.stride,BUFFER_OFFSET(mesh.texOffset));
         glEnableVertexAttribArray(vert);
         glEnableVertexAttribArray(norm);
         glEnableVertexAttribArray(tex);
@@ -825,8 +825,8 @@ void RenderWidget::generateFlatMesh(mesh_t &mesh, int width, int height, float s
     }
     mesh.indexCount = count;
     mesh.vertexOffset = 0;
-    mesh.normalOffset = 4;
-    mesh.texOffset = 7;
+    mesh.normalOffset = 3;
+    mesh.texOffset = 6;
     mesh.stride = sizeof(vertex_t);
     pdebug("Generating VBO");
     glGenBuffers(1,&mesh.vboID);
@@ -920,7 +920,10 @@ void RenderWidget::generateSphere(mesh_t &mesh, int width, int height, float rad
     }
 
     mesh.indexCount = t;
-
+    mesh.vertexOffset = 0;
+    mesh.normalOffset = 3;
+    mesh.texOffset = 6;
+    mesh.stride = sizeof(vertex_t);
     glGenBuffers(1,&mesh.vboID);
     pdebug(mesh.vboID);
     if (mesh.vboID > 0)
