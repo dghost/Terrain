@@ -101,6 +101,7 @@ protected:
     void generateTexture(texture_t texStruct, QGLShaderProgram *shader);
     void generateFlatMesh(mesh_t &mesh, int width, int height, float scale = 1.0);
     void generateSphere(mesh_t &mesh, int width, int height, float radius = 1.0);
+    void generateQuad(mesh_t &mesh);
     void drawMesh(mesh_t &mesh, GLuint vert, GLuint norm, GLuint tex);
     void drawHUD(void);
     void initTexture(texture_t &texture, int width, int height);
@@ -174,6 +175,7 @@ private:
 
     glm::vec3 lightPosition;
     glm::vec3 _lightMovement;
+    mesh_t _quad;
     mesh_t _flatMesh[8];
     int _groundMesh;
     int _waterMesh;

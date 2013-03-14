@@ -22,6 +22,9 @@ RenderWidget::RenderWidget(const QGLFormat& format, QGLWidget *parent) :
     _skysphere.mesh = NULL;
     _skysphere.index = NULL;
     _skysphere.vboID = 0;
+    _quad.mesh = NULL;
+    _quad.index = NULL;
+    _quad.vboID = 0;
     _timerID = 0;
     _keysDown.Q = false;
     _keysDown.W = false;
@@ -225,15 +228,14 @@ void RenderWidget::initializeGL()
     pdebug("Generating sphere mesh...");
     generateSphere(_skysphere,16,16,1.0);
 
+    pdebug("Generating full screen quad mesh...");
+    generateQuad(_quad);
 
     // standard opengl enables
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_TEXTURE_2D);
     glClearColor(0.0,0.0,0.0,0.0);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
     pdebug("Generating textures...");
     /* initialize textures for FBO's */
@@ -351,7 +353,7 @@ void RenderWidget::paintGL()
         if (_flatMesh[_groundMesh].mesh != NULL && _flatMesh[_groundMesh].index != NULL)
         {
             int index = _gndShader;
-           // glBindBuffer(GL_ARRAY_BUFFER,_flatMesh[_groundMesh].vboID);
+            // glBindBuffer(GL_ARRAY_BUFFER,_flatMesh[_groundMesh].vboID);
 
 
             /* draw the terrain */
@@ -658,10 +660,10 @@ void RenderWidget::drawMesh(mesh_t &mesh,GLuint vert,GLuint norm,GLuint tex)
 {
     if (mesh.vboID != 0)
     {
-            glBindBuffer(GL_ARRAY_BUFFER,mesh.vboID);
-        glVertexAttribPointer(vert,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(5 * sizeof(GLfloat)));
-        glVertexAttribPointer(norm,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(2 * sizeof(GLfloat)));
-        glVertexAttribPointer(tex,2,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(0));
+        glBindBuffer(GL_ARRAY_BUFFER,mesh.vboID);
+        glVertexAttribPointer(vert,3,GL_FLOAT,GL_FALSE,mesh.stride,BUFFER_OFFSET(5 * sizeof(GLfloat)));
+        glVertexAttribPointer(norm,3,GL_FLOAT,GL_FALSE,mesh.stride,BUFFER_OFFSET(2 * sizeof(GLfloat)));
+        glVertexAttribPointer(tex,2,GL_FLOAT,GL_FALSE,mesh.stride,BUFFER_OFFSET(0));
         glEnableVertexAttribArray(vert);
         glEnableVertexAttribArray(norm);
         glEnableVertexAttribArray(tex);
@@ -669,7 +671,7 @@ void RenderWidget::drawMesh(mesh_t &mesh,GLuint vert,GLuint norm,GLuint tex)
         glDisableVertexAttribArray(vert);
         glDisableVertexAttribArray(norm);
         glDisableVertexAttribArray(tex);
-            glBindBuffer(GL_ARRAY_BUFFER,0);
+        glBindBuffer(GL_ARRAY_BUFFER,0);
     }
 
 }
@@ -679,18 +681,13 @@ void RenderWidget::drawFullScreenQuad(GLuint vert)
 {
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-    GLfloat quad[16] = {
-        -1,-1,0,1,
-        1,-1,0,1,
-        -1,1,0,1,
-        1,1,0,1
-    };
-
-
-    glVertexAttribPointer(vert,4,GL_FLOAT,GL_FALSE,0,&quad);
+    glBindBuffer(GL_ARRAY_BUFFER,_quad.vboID);
+    glVertexAttribPointer(vert,4,GL_FLOAT,GL_FALSE,_quad.stride,BUFFER_OFFSET(0));
     glEnableVertexAttribArray(vert);
-    glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+    glDrawElements(GL_TRIANGLES, _quad.indexCount, GL_UNSIGNED_INT, &_quad.index );
     glDisableVertexAttribArray(vert);
+
+    glBindBuffer(GL_ARRAY_BUFFER,0);
 }
 
 // render to a texture
@@ -749,6 +746,47 @@ void RenderWidget::initTexture(texture_t &texture, int width, int height)
 
 }
 
+
+void RenderWidget::generateQuad(mesh_t &mesh)
+{
+    if (mesh.mesh != NULL)
+        free(mesh.mesh);
+    if (mesh.index != NULL)
+        free(mesh.index);
+
+    pdebug("Generating vertices");
+    GLfloat quad[16] = {
+        -1,-1,0,1,
+        1,-1,0,1,
+        -1,1,0,1,
+        1,1,0,1
+    };
+
+    mesh.mesh = (vertex_t *) malloc(sizeof(quad));
+
+    memcpy(mesh.mesh,&quad,sizeof(quad));
+
+    pdebug("Generating Indices");
+
+    GLuint indices[4] = {0,1,2,3};
+    mesh.index = (GLuint *) malloc(sizeof(indices));
+    mesh.index = indices;
+
+    mesh.indexCount = 4;
+    mesh.vertexOffset = 0;
+    mesh.normalOffset = 0;
+    mesh.texOffset = 0;
+    mesh.stride = sizeof(GLfloat) * 4;
+    pdebug("Generating VBO");
+    glGenBuffers(1,&mesh.vboID);
+    pdebug(mesh.vboID);
+    if (mesh.vboID > 0)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER,mesh.vboID);
+        glBufferData(GL_ARRAY_BUFFER,sizeof(quad),mesh.mesh,GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER,0);
+    }
+}
 
 void RenderWidget::generateFlatMesh(mesh_t &mesh, int width, int height, float scale)
 {
