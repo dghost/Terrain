@@ -1,3 +1,5 @@
+#version 130
+
 in vec3 texCoords;
 uniform float in_Time;
 uniform vec2 in_Offsets;

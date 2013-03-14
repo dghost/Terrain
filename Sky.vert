@@ -1,3 +1,5 @@
+#version 130
+
 in vec3 inVertex;
 
 out vec3 texCoords;

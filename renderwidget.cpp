@@ -687,7 +687,7 @@ void RenderWidget::drawFullScreenQuad(GLuint vert)
     };
 
 
-    glVertexAttribPointer(vert,4,GL_FLOAT,GL_FALSE,4 * sizeof(GLfloat),&quad);
+    glVertexAttribPointer(vert,4,GL_FLOAT,GL_FALSE,0,&quad);
     glEnableVertexAttribArray(vert);
     glDrawArrays(GL_TRIANGLE_STRIP,0,4);
     glDisableVertexAttribArray(vert);

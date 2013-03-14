@@ -1,3 +1,5 @@
+#version 130
+
 in vec2 texCoords;
 in vec2 skyCoords;
 in vec3 eye;
