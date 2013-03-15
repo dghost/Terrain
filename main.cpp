@@ -11,6 +11,8 @@ int main(int argc, char *argv[])
 
 #ifdef __APPLE__
     glFormat.setVersion( 3, 2 );
+#else
+    glFormat.setVersion(3,0);
 #endif
 
     glFormat.setProfile(QGLFormat::CoreProfile);
