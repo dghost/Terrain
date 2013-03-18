@@ -214,11 +214,14 @@ float flow(vec2 p, float time)
 
     float result = snoise(vec3(p * 4.0,time)) * 0.25;
     result += snoise(vec3(p * 8.0,time)) * 0.125;
+    //result += snoise(vec3(p * 16.0,time)) * 0.0625;
+
     vec2 g1, g2;
    float n1 = srdnoise(p*0.5, 0.2*time, g1);
    float n2 = srdnoise(p*2.0 + g1*0.5, 0.51*time, g2);
    float n3 = srdnoise(p*4.0 + g1*0.5 + g2*0.25, 0.77*time, g2);
     result +=  n1+ 0.75*n2 + 0.5*n3;
+
     return result;
 }
 
@@ -244,8 +247,8 @@ void main(void)
 
     float nsDiff = flow(nCoords,time) - flow(sCoords,time);
     float ewDiff = flow(eCoords,time) - flow(wCoords,time);
-    vec3 vector1 = vec3(2.0 * in_texelSize.x * in_sideLength.x,0.0,nsDiff * 125.0);
-    vec3 vector2 = vec3(0.0,2.0 * in_texelSize.y * in_sideLength.y,ewDiff * 125.0);
+    vec3 vector1 = vec3(2.0 * in_texelSize.x * in_sideLength.x,0.0,nsDiff * 40.0);
+    vec3 vector2 = vec3(0.0,2.0 * in_texelSize.y * in_sideLength.y,ewDiff * 40.0);
 
 
     outColor.rgb = normalize(cross(vector1,vector2));

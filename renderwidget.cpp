@@ -255,7 +255,7 @@ void RenderWidget::initializeGL()
         generateTexture(_groundTexture[i],_terrain);
     }
     generateTexture(_waterTexture[_wtrTexture],_flow);
-generateTexture(_cloudTexture[_cldTexture],_clouds);
+    generateTexture(_cloudTexture[_cldTexture],_clouds);
 
     grabMouse();
     QCursor::setPos(width()/2,height()/2);
@@ -747,7 +747,7 @@ void RenderWidget::generateTexture(texture_t texStruct, QGLShaderProgram *shader
 
     // restore window to previous state
     glBindFramebuffer(GL_FRAMEBUFFER, currentFrameBuffer);
-        glBindTexture(GL_TEXTURE_2D,0);
+    glBindTexture(GL_TEXTURE_2D,0);
     glViewport(0, 0, width(), height());
 
 }
@@ -805,7 +805,7 @@ void RenderWidget::generateQuad(fsquad_t &mesh)
 
     pdebug("Generating Indices");
 
- //   GLuint indices[4] = {0,1,2,3};
+    //   GLuint indices[4] = {0,1,2,3};
     mesh.index = (GLuint *) malloc(sizeof(GLuint) * 4);
     mesh.index[0] = 0;
     mesh.index[1] = 1;
