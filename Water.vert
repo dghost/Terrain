@@ -6,9 +6,9 @@ in vec2 inTexCoord;
 
 
 
-uniform sampler2D texture0;
-uniform sampler2D texture1;
-uniform sampler2D texture2;
+uniform sampler2D cloudTexture;
+uniform sampler2D groundTexture;
+uniform sampler2D waterTexture;
 uniform vec3 light_pos;
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
@@ -25,7 +25,7 @@ void main(void)
     // get the coordinates for the mesh
     texCoords = inTexCoord;
     // read in the texture value
-    float tex = texture2D(texture2,inTexCoord).a;
+    float tex = texture2D(waterTexture,inTexCoord).a;
 
 
     // get the coordinates for the clouds

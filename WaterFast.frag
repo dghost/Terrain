@@ -4,9 +4,9 @@ in vec2 texCoords;
 in vec2 skyCoords;
 in vec3 eye;
 in vec3 light_dir;
-uniform sampler2D texture0;
-//uniform sampler2D texture1;
-uniform sampler2D texture2;
+uniform sampler2D cloudTexture;
+//uniform sampler2D groundTexture;
+uniform sampler2D waterTexture;
 uniform mat4 viewMatrix;
 
 out vec4 outColor;
@@ -17,9 +17,9 @@ void main(void)
 
 
     // value is 1 if no cloud, 0 if cloud
-    float value = 1.0 - smoothstep(-1.0, 1.0 ,texture2D(texture0,skyCoords).r) * 0.5;
+    float value = 1.0 - smoothstep(-1.0, 1.0 ,texture2D(cloudTexture,skyCoords).r) * 0.5;
 
-    vec3 n =  texture2D(texture2,texCoords).rgb;
+    vec3 n =  texture2D(waterTexture,texCoords).rgb;
 
     // calculate the normal
     vec3 normal = mat3(viewMatrix) * n;

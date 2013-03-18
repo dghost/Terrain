@@ -3,7 +3,7 @@
 in vec3 texCoords;
 uniform float in_Time;
 uniform vec2 in_Offsets;
-uniform sampler2D texture0;
+uniform sampler2D cloudTexture;
 
 out vec4 outColor;
 
@@ -15,7 +15,7 @@ void main(void)
 {
 
     // read the cloud value
-    float value = smoothstep(-1.0,1.0,texture2D(texture0,texCoords.xy).r);
+    float value = smoothstep(-1.0,1.0,texture2D(cloudTexture,texCoords.xy).r);
 
     float r = texCoords.z * 2.0 - 1.0;
 

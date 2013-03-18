@@ -255,7 +255,7 @@ void RenderWidget::initializeGL()
         generateTexture(_groundTexture[i],_terrain);
     }
     generateTexture(_waterTexture[_wtrTexture],_flow);
-    generateTexture(_cloudTexture[_cldTexture],_clouds);
+generateTexture(_cloudTexture[_cldTexture],_clouds);
 
     grabMouse();
     QCursor::setPos(width()/2,height()/2);
@@ -376,9 +376,9 @@ void RenderWidget::paintGL()
 
 
             _ground[index]->bind();
-            GLint t0Loc = _ground[index]->uniformLocation("texture0");
-            GLint t1Loc = _ground[index]->uniformLocation("texture1");
-            GLint t2Loc = _ground[index]->uniformLocation("texture2");
+            GLint t0Loc = _ground[index]->uniformLocation("cloudTexture");
+            GLint t1Loc = _ground[index]->uniformLocation("groundTexture");
+            GLint t2Loc = _ground[index]->uniformLocation("waterTexture");
             GLint lPos = _ground[index]->uniformLocation("light_pos");
             GLint vPos = _ground[index]->uniformLocation("viewMatrix");
             GLint pPos = _ground[index]->uniformLocation("projMatrix");
@@ -417,9 +417,9 @@ void RenderWidget::paintGL()
             }
 
             _water[index]->bind();
-            GLint t0Loc = _water[index]->uniformLocation("texture0");
-            GLint t1Loc = _water[index]->uniformLocation("texture1");
-            GLint t2Loc = _water[index]->uniformLocation("texture2");
+            GLint t0Loc = _water[index]->uniformLocation("cloudTexture");
+            GLint t1Loc = _water[index]->uniformLocation("groundTexture");
+            GLint t2Loc = _water[index]->uniformLocation("waterTexture");
             GLint lPos = _water[index]->uniformLocation("light_pos");
             GLint vPos = _water[index]->uniformLocation("viewMatrix");
             GLint pPos = _water[index]->uniformLocation("projMatrix");
@@ -456,7 +456,7 @@ void RenderWidget::paintGL()
 
 
         _sky->bind();
-        GLint t0Loc = _sky->uniformLocation("texture0");
+        GLint t0Loc = _sky->uniformLocation("cloudTexture");
         GLint oLoc = _sky->uniformLocation("in_Offsets");
         GLint vPos = _sky->uniformLocation("viewMatrix");
         GLint pPos = _sky->uniformLocation("projMatrix");
@@ -747,7 +747,7 @@ void RenderWidget::generateTexture(texture_t texStruct, QGLShaderProgram *shader
 
     // restore window to previous state
     glBindFramebuffer(GL_FRAMEBUFFER, currentFrameBuffer);
-    glBindTexture(GL_TEXTURE_2D,0);
+        glBindTexture(GL_TEXTURE_2D,0);
     glViewport(0, 0, width(), height());
 
 }
@@ -805,7 +805,7 @@ void RenderWidget::generateQuad(fsquad_t &mesh)
 
     pdebug("Generating Indices");
 
-    //   GLuint indices[4] = {0,1,2,3};
+ //   GLuint indices[4] = {0,1,2,3};
     mesh.index = (GLuint *) malloc(sizeof(GLuint) * 4);
     mesh.index[0] = 0;
     mesh.index[1] = 1;

@@ -6,9 +6,9 @@ in vec2 skyCoords;
 in vec3 light_dir;
 uniform mat4 viewMatrix;
 
-uniform sampler2D texture0;
-uniform sampler2D texture1;
-uniform sampler2D texture2;
+uniform sampler2D cloudTexture;
+uniform sampler2D groundTexture;
+uniform sampler2D waterTexture;
 
 out vec4 outColor;
 vec4 green = vec4(34.0,139.0,34.0,255.0);
@@ -24,11 +24,11 @@ void main(void)
 
     // read in offset
 
-    float displacement = texture2D(texture1,texCoords).a;
+    float displacement = texture2D(groundTexture,texCoords).a;
     //displacement = displacement * displacement + displacement;
     displacement *= 125.0;
 
-    float cloudRaw = smoothstep(-1.0,1.0,texture2D(texture0,skyCoords).r);
+    float cloudRaw = smoothstep(-1.0,1.0,texture2D(cloudTexture,skyCoords).r);
     float cloudWeight = 1.0 - cloudRaw * 0.5;
 
     float caustic = 1.0;
@@ -47,12 +47,12 @@ void main(void)
         color = brown + diff * smoothstep(-50.0,50.0,displacement);
         if (displacement < 0.0)
         {
-            caustic = mix(1.0,smoothstep(1.0,-1.0,texture2D(texture2,texCoords).a * 0.25),smoothstep(0.0,-50.0,displacement));
+            caustic = mix(1.0,smoothstep(1.0,-1.0,texture2D(waterTexture,texCoords).a * 0.25),smoothstep(0.0,-50.0,displacement));
         }
     }
     color /= 255.0;
 
-    vec3 normal = mat3(viewMatrix) * texture2D(texture1,texCoords).rgb;
+    vec3 normal = mat3(viewMatrix) * texture2D(groundTexture,texCoords).rgb;
     vec3 L = normalize(light_dir);
     vec3 N = normalize(normal);
     float diffuse = max(dot(N,L),0.0);

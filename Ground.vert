@@ -5,7 +5,7 @@ in vec3 inNormal;
 in vec2 inTexCoord;
 
 
-uniform sampler2D texture1;
+uniform sampler2D groundTexture;
 
 uniform vec3 light_pos;
 uniform mat4 viewMatrix;
@@ -26,7 +26,7 @@ void main(void)
 
     vec4 pos = vec4(inVertex,1.0);
     light_dir = vec3(viewMatrix * vec4(light_pos,0.0));
-    float offset = texture2D(texture1,inTexCoord).a;
+    float offset = texture2D(groundTexture,inTexCoord).a;
     //float zPos = offset * 125.0;
     float zPos = offset * 125.0;
     pos.z += zPos;
