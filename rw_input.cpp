@@ -214,56 +214,6 @@ void RenderWidget::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
-// handle mouse movement
-void RenderWidget::mouseMoveEvent ( QMouseEvent * event )
-{
-    /*
-    if (event->buttons().testFlag(Qt::LeftButton) && _mouseStatus.leftButtonHeldDown)
-    {
-        _camera.pan = _mouseStatus.origHoriz - (event->x() - _mouseStatus.startX) / 2.0;
-        _camera.tilt = _mouseStatus.origVert - (event->y() - _mouseStatus.startY) / 2.0;
-        //updateGL();
-        //   qDebug() << QString("Mouse moved to %1,%2").arg(event->x()).arg(event->y());
-
-    }
-    */
-
-    event->accept();
-}
-
-// handle mouse button pressed
-void RenderWidget::mousePressEvent ( QMouseEvent * event )
-{
-    /*
-    if (event->buttons().testFlag(Qt::LeftButton))
-    {
-        _mouseStatus.leftButtonHeldDown = true;
-        _mouseStatus.startX = event->x();
-        _mouseStatus.startY = event->y();
-        _mouseStatus.origHoriz = _camera.pan;
-        _mouseStatus.origVert = _camera.tilt;
-        //   qDebug() << QString("Mouse pressed at %1,%2").arg(_mouseStatus.startX).arg(_mouseStatus.startY);
-    }
-    */
-    event->accept();
-}
-
-// handle releasing the mouse button
-void RenderWidget::mouseReleaseEvent ( QMouseEvent * event )
-{
-    /*
-    if (!event->buttons().testFlag(Qt::LeftButton))
-    {
-        _camera.pan = _mouseStatus.origHoriz - (event->x() - _mouseStatus.startX) / 2.0;
-        _camera.tilt = _mouseStatus.origVert - (event->y() - _mouseStatus.startY) / 2.0;
-        // updateGL();
-        _mouseStatus.leftButtonHeldDown = false;
-        //    qDebug() << "Mouse released";
-    }
-    */
-    event->accept();
-}
-
 // event to handle scrolling with scroll wheel
 void RenderWidget::wheelEvent(QWheelEvent *event)
 {
@@ -285,12 +235,14 @@ void RenderWidget::wheelEvent(QWheelEvent *event)
 void RenderWidget::processInput(float timeSinceLastUpdate)
 {
 
+    if (_hasFocus)
+    {
     _camera.pan  -= (QCursor::pos().x() - _mouseStatus.startX) / 2.0;
     _camera.tilt -= (QCursor::pos().y() - _mouseStatus.startY) / 2.0;
     QCursor::setPos(width()/2,height()/2);
     _mouseStatus.startX = width()/2;
     _mouseStatus.startY = height()/2;
-
+    }
     float perFrame = timeSinceLastUpdate / 1000.0;
     if (_camera.mode == 0)
     {
@@ -356,19 +308,29 @@ void RenderWidget::processInput(float timeSinceLastUpdate)
 }
 
 
-void RenderWidget::focusInEvent(QFocusEvent *event)
-{
 
-    event->accept();
-}
-void RenderWidget::focusOutEvent(QFocusEvent *event)
+bool RenderWidget::eventFilter(QObject *watched, QEvent *event)
 {
-    setMouseTracking(false);
-    releaseMouse();
-    //    QCursor::setPos(width()/2,height()/2);
-    //    _mouseStatus.startX = width()/2;
-    //    _mouseStatus.startY = height()/2;
-    setCursor( QCursor( Qt::ArrowCursor) );
-    event->accept();
-
+    if (watched == qApp)
+    {
+        if (event->type() == QEvent::ApplicationActivate)
+        {
+                pdebug("Window gained focus");
+                setCursor(QCursor(Qt::BlankCursor));
+                _hasFocus = true;
+                setMouseTracking(true);
+                grabMouse();
+                QCursor::setPos(width()/2,height()/2);
+                _mouseStatus.startX = width()/2;
+                _mouseStatus.startY = height()/2;
+        } else if (event->type() == QEvent::ApplicationDeactivate)
+        {
+                pdebug("Window lost focus");
+                setCursor(QCursor(Qt::ArrowCursor));
+                _hasFocus = false;
+               setMouseTracking(false);
+               releaseMouse();
+        }
+    }
+    return QGLWidget::eventFilter(watched,event);
 }

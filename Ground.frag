@@ -24,8 +24,8 @@ void main(void)
 
     // read in offset
 
-    float displacement = texture2D(texture1,texCoords).r;
-    displacement = displacement * displacement + displacement;
+    float displacement = texture2D(texture1,texCoords).a;
+    //displacement = displacement * displacement + displacement;
     displacement *= 125.0;
 
     float cloudRaw = smoothstep(-1.0,1.0,texture2D(texture0,skyCoords).r);
@@ -52,7 +52,7 @@ void main(void)
     }
     color /= 255.0;
 
-    vec3 normal = mat3(viewMatrix) * texture2D(texture1,texCoords).gba;
+    vec3 normal = mat3(viewMatrix) * texture2D(texture1,texCoords).rgb;
     vec3 L = normalize(light_dir);
     vec3 N = normalize(normal);
     float diffuse = max(dot(N,L),0.0);

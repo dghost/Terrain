@@ -71,6 +71,11 @@ RenderWidget::RenderWidget(const QGLFormat& format, QGLWidget *parent) :
 
     lightPosition = glm::vec3(1500,0,1500);
     _lightMovement = glm::vec3(50,0,0);
+
+    _hasFocus = isActiveWindow();
+
+    if (qApp)
+        qApp->installEventFilter(this);
 }
 
 RenderWidget::~RenderWidget()
@@ -706,6 +711,7 @@ void RenderWidget::generateTexture(texture_t texStruct, QGLShaderProgram *shader
     // change viewport size
     glViewport(0,0,texStruct.width,texStruct.height);
 
+
     GLenum res = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (res != GL_FRAMEBUFFER_COMPLETE)
     {
@@ -718,6 +724,14 @@ void RenderWidget::generateTexture(texture_t texStruct, QGLShaderProgram *shader
     GLint oLoc = shader->uniformLocation("in_Offsets");
     glUniform2fv(oLoc,1,glm::value_ptr(_mesh.texOffsets));
     GLuint vPos = shader->attributeLocation("inVertex");
+
+
+    GLint texel = shader->uniformLocation("in_texelSize");
+    GLint size = shader->uniformLocation("in_sideLength");
+
+    glUniform2f(texel,1.0/texStruct.width,1.0/texStruct.height);
+    glUniform2f(size,2048.0,2048.0);
+
     drawFullScreenQuad(vPos);
 
     shader->release();
@@ -1000,3 +1014,4 @@ int RenderWidget::FramesPerSecond()
     _fpsInfo.count++;
     return _fpsInfo.fps;
 }
+

@@ -101,9 +101,6 @@ protected:
     void paintGL();
     void initializeGL();
     void resizeGL(int width, int height);
-    void mouseMoveEvent ( QMouseEvent * event );
-    void mousePressEvent ( QMouseEvent * event );
-    void mouseReleaseEvent ( QMouseEvent * event );
     void keyPressEvent(QKeyEvent *event);
     void timerEvent(QTimerEvent *event);
     void wheelEvent(QWheelEvent *event);
@@ -118,9 +115,8 @@ protected:
     void drawMesh(mesh_t &mesh, GLuint vert, GLuint norm, GLuint tex);
     void drawHUD(void);
     void initTexture(texture_t &texture, int width, int height);
-    void focusInEvent(QFocusEvent *event);
-    void focusOutEvent(QFocusEvent *event);
 
+    bool eventFilter(QObject *watched, QEvent *event);
 private:
 
     struct {
@@ -218,7 +214,7 @@ private:
         int count;
     } _fpsInfo;
 
-
+    bool _hasFocus;
 
 };
 

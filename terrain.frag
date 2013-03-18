@@ -2,7 +2,8 @@
 
 uniform float in_Time;
 uniform vec2 in_Offsets;
-
+uniform vec2 in_texelSize;
+uniform vec2 in_sideLength;
 in vec4 TexCoord0;
 
 out vec4 outColor;
@@ -114,10 +115,15 @@ float cnoise(vec3 P)
 }
 
 float height(vec2 xy, float time) {
-    float value = cnoise(vec3(xy,time));
-    value += cnoise(vec3(xy*2.0,time)) * 1.0 / 2.0;
-    value += cnoise(vec3(xy*4.0,time)) * 1.0 / 4.0;
-    value += cnoise(vec3(xy*8.0,time)) * 1.0 / 8.0;
+    float value = 0.0;
+    float div = 2.0;
+    float mult = 0.5;
+    for (int i = 1; i < 6; i++)
+    {
+        mult *= 2.0;
+        div *= 0.5;
+        value += cnoise(vec3(xy * mult,time)) * div;
+    }
      return value;
 }
 
@@ -129,10 +135,10 @@ void main(void)
 
     // generate harmonic noise - will be smooth compared to clouds
 
-    vec2 nCoords = texCoords + vec2(1.0/512.0,0.000);
-    vec2 sCoords = texCoords - vec2(1.0/512.0,0.000);
-    vec2 eCoords = texCoords + vec2(0.0000,1.0/512.0);
-    vec2 wCoords = texCoords - vec2(0.0000,1.0/512.0);
+    vec2 nCoords = texCoords + vec2(in_texelSize.x,0.000);
+    vec2 sCoords = texCoords - vec2(in_texelSize.x,0.000);
+    vec2 eCoords = texCoords + vec2(0.0000,in_texelSize.y);
+    vec2 wCoords = texCoords - vec2(0.0000,in_texelSize.y);
 
     vec4 t;
     t.x = height(nCoords,time);
@@ -144,10 +150,10 @@ void main(void)
 
     float nsDiff = t.x - t.y;
     float ewDiff = t.z - t.w;
-    vec3 vector1 = vec3(8.0,0.0,nsDiff * 125.0);
-    vec3 vector2 = vec3(0.0,8.0,ewDiff * 125.0);
+    vec3 vector1 = vec3(2.0 * in_texelSize.x * in_sideLength.x,0.0,nsDiff * 125.0);
+    vec3 vector2 = vec3(0.0,2.0 * in_texelSize.y * in_sideLength.y,ewDiff * 125.0);
 
-
-    outColor.r = height(texCoords,time);
-    outColor.gba = normalize(cross(vector1,vector2));
+    float h =  height(texCoords,time);
+    outColor.a = h * h + h;
+    outColor.rgb = normalize(cross(vector1,vector2));
 }
