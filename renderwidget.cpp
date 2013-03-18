@@ -254,7 +254,8 @@ void RenderWidget::initializeGL()
     {
         generateTexture(_groundTexture[i],_terrain);
     }
-
+    generateTexture(_waterTexture[_wtrTexture],_flow);
+generateTexture(_cloudTexture[_cldTexture],_clouds);
 
     grabMouse();
     QCursor::setPos(width()/2,height()/2);
@@ -265,6 +266,7 @@ void RenderWidget::initializeGL()
     // start tracking time
     _runTime.start();
     _fpsTime.start();
+    _textureTime.start();
     // generate meshes
 
     _timerID = startTimer(0);
@@ -276,6 +278,20 @@ void RenderWidget::timerEvent ( QTimerEvent * event )
     // calculate the time elapsed for the perlin waves
     qint64 timeElapsed = _runTime.nsecsElapsed();
     float msElapsedSinceRender = timeElapsed / 1000000.0;
+    qint64 texTimeElapsed = _textureTime.nsecsElapsed();
+    float msElapsedSinceTexture = texTimeElapsed / 1000000.0;
+
+    if (msElapsedSinceTexture >= 33.3)
+    {
+        _textureTime.start();
+        if (!_paused)
+        {
+            // if not paused update the textures
+            if (_modes.drawWater)
+                generateTexture(_waterTexture[_wtrTexture],_flow);
+            generateTexture(_cloudTexture[_cldTexture],_clouds);
+        }
+    }
 
     if (msElapsedSinceRender >= 0.0)
     {
@@ -325,13 +341,6 @@ void RenderWidget::paintGL()
 
     int trisRendered = 0;
 
-    if (!_paused)
-    {
-        // if not paused update the textures
-        if (_modes.drawWater)
-            generateTexture(_waterTexture[_wtrTexture],_flow);
-        generateTexture(_cloudTexture[_cldTexture],_clouds);
-    }
 
 
     // draw the mesh in a series of strips

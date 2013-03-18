@@ -165,6 +165,7 @@ private:
 
     QElapsedTimer _runTime;
     QElapsedTimer _fpsTime;
+    QElapsedTimer _textureTime;
     bool _wireFrame;
     bool _ortho;
     bool _textureLoaded;
