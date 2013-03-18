@@ -6,16 +6,16 @@ int main(int argc, char *argv[])
 {
     pdebug("Debugging enabled");
     QApplication a(argc, argv);
-  // QGLFormat glFormat = QGLFormat(QGL::DoubleBuffer | QGL::DirectRendering | QGL::DeprecatedFunctions);
-    QGLFormat glFormat = QGLFormat(QGL::DoubleBuffer | QGL::DirectRendering);
+    QGLFormat glFormat = QGLFormat(QGL::DoubleBuffer | QGL::DirectRendering | QGL::DeprecatedFunctions);
+    //   QGLFormat glFormat = QGLFormat(QGL::DoubleBuffer | QGL::DirectRendering);
 
 #ifdef __APPLE__
     glFormat.setVersion( 3, 2 );
 #else
-    glFormat.setVersion(3,0);
+    glFormat.setVersion(4,0);
 #endif
 
-    glFormat.setProfile(QGLFormat::CoreProfile);
+    glFormat.setProfile(QGLFormat::CompatibilityProfile);
     RenderWidget w(glFormat);
     w.show();
     w.resize(1280,720);

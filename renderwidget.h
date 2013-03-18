@@ -12,7 +12,7 @@
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 
 #ifndef __APPLE__
-#include "gl_core_3_0.h"
+#include "gl_core_4_0.h"
 #endif
 #include <QGLWidget>
 #include <QTime>
