@@ -171,49 +171,49 @@ void RenderWidget::initializeGL()
 
     /* generate shaders */
     pdebug("Compiling Sky shader...");
-    _sky = new QGLShaderProgram(this);
-    _sky->addShaderFromSourceFile(QGLShader::Vertex,QString("Sky.vert"));
-    _sky->addShaderFromSourceFile(QGLShader::Fragment,QString("Sky.frag"));
+    _sky = new ShaderProgram();
+    _sky->addVertex("Sky.vert");
+    _sky->addFragment("Sky.frag");
     _sky->link();
 
     pdebug("Compiling Ground shader...");
-    _ground[0] = new QGLShaderProgram(this);
-    _ground[0]->addShaderFromSourceFile(QGLShader::Vertex,QString("Ground.vert"));
-    _ground[0]->addShaderFromSourceFile(QGLShader::Fragment,QString("GroundNoCaustic.frag"));
+    _ground[0] = new ShaderProgram();
+    _ground[0]->addVertex("Ground.vert");
+    _ground[0]->addFragment("GroundNoCaustic.frag");
     _ground[0]->link();
 
-    _ground[1] = new QGLShaderProgram(this);
-    _ground[1]->addShaderFromSourceFile(QGLShader::Vertex,QString("Ground.vert"));
-    _ground[1]->addShaderFromSourceFile(QGLShader::Fragment,QString("Ground.frag"));
+    _ground[1] = new ShaderProgram();
+    _ground[1]->addVertex("Ground.vert");
+    _ground[1]->addFragment("Ground.frag");
     _ground[1]->link();
 
     pdebug("Compiling Water shader...");
-    _water[1] = new QGLShaderProgram(this);
-    _water[1]->addShaderFromSourceFile(QGLShader::Vertex,QString("Water.vert"));
-    _water[1]->addShaderFromSourceFile(QGLShader::Fragment,QString("Water.frag"));
+    _water[1] = new ShaderProgram();
+    _water[1]->addVertex("Water.vert");
+    _water[1]->addFragment("Water.frag");
     _water[1]->link();
 
-    _water[0] = new QGLShaderProgram(this);
-    _water[0]->addShaderFromSourceFile(QGLShader::Vertex,QString("Water.vert"));
-    _water[0]->addShaderFromSourceFile(QGLShader::Fragment,QString("WaterFast.frag"));
+    _water[0] = new ShaderProgram();
+    _water[0]->addVertex("Water.vert");
+    _water[0]->addFragment("WaterFast.frag");
     _water[0]->link();
 
     pdebug("Compiling flow shader...");
-    _flow = new QGLShaderProgram(this);
-    _flow->addShaderFromSourceFile(QGLShader::Vertex,QString("quad.vert"));
-    _flow->addShaderFromSourceFile(QGLShader::Fragment,QString("flow.frag"));
+    _flow = new ShaderProgram();
+    _flow->addVertex("quad.vert");
+    _flow->addFragment("flow.frag");
     _flow->link();
 
     pdebug("Compiling cloud shader...");
-    _clouds = new QGLShaderProgram(this);
-    _clouds->addShaderFromSourceFile(QGLShader::Vertex,QString("quad.vert"));
-    _clouds->addShaderFromSourceFile(QGLShader::Fragment,QString("clouds.frag"));
+    _clouds = new ShaderProgram();
+    _clouds->addVertex("quad.vert");
+    _clouds->addFragment("clouds.frag");
     _clouds->link();
 
     pdebug("Compiling terrain shader...");
-    _terrain = new QGLShaderProgram(this);
-    _terrain->addShaderFromSourceFile(QGLShader::Vertex,QString("quad.vert"));
-    _terrain->addShaderFromSourceFile(QGLShader::Fragment,QString("terrain.frag"));
+    _terrain = new ShaderProgram();
+    _terrain->addVertex("quad.vert");
+    _terrain->addFragment("terrain.frag");
     _terrain->link();
 
 
@@ -255,7 +255,7 @@ void RenderWidget::initializeGL()
         generateTexture(_groundTexture[i],_terrain);
     }
     generateTexture(_waterTexture[_wtrTexture],_flow);
-generateTexture(_cloudTexture[_cldTexture],_clouds);
+    generateTexture(_cloudTexture[_cldTexture],_clouds);
 
     grabMouse();
     QCursor::setPos(width()/2,height()/2);
@@ -270,6 +270,8 @@ generateTexture(_cloudTexture[_cldTexture],_clouds);
     // generate meshes
 
     _timerID = startTimer(0);
+
+
 }
 
 
@@ -707,7 +709,7 @@ void RenderWidget::drawFullScreenQuad(GLuint vert)
 }
 
 // render to a texture
-void RenderWidget::generateTexture(texture_t texStruct, QGLShaderProgram *shader)
+void RenderWidget::generateTexture(texture_t texStruct, ShaderProgram *shader)
 {
     // save state
     GLint currentFrameBuffer = 0;
@@ -747,11 +749,10 @@ void RenderWidget::generateTexture(texture_t texStruct, QGLShaderProgram *shader
 
     // restore window to previous state
     glBindFramebuffer(GL_FRAMEBUFFER, currentFrameBuffer);
-        glBindTexture(GL_TEXTURE_2D,0);
+    glBindTexture(GL_TEXTURE_2D,0);
     glViewport(0, 0, width(), height());
 
 }
-
 
 void RenderWidget::initTexture(texture_t &texture, int width, int height)
 {
@@ -805,7 +806,7 @@ void RenderWidget::generateQuad(fsquad_t &mesh)
 
     pdebug("Generating Indices");
 
- //   GLuint indices[4] = {0,1,2,3};
+    //   GLuint indices[4] = {0,1,2,3};
     mesh.index = (GLuint *) malloc(sizeof(GLuint) * 4);
     mesh.index[0] = 0;
     mesh.index[1] = 1;
@@ -1023,4 +1024,5 @@ int RenderWidget::FramesPerSecond()
     _fpsInfo.count++;
     return _fpsInfo.fps;
 }
+
 

@@ -20,11 +20,13 @@ SOURCES += \
     renderwidget.cpp \
     main.cpp \
     rw_input.cpp \
-    gl_core_4_0.c
+    gl_core_4_0.c \
+    shaderprogram.cpp
 
 HEADERS  += \
     renderwidget.h \
-    gl_core_4_0.h
+    gl_core_4_0.h \
+    shaderprogram.h
 
 OTHER_FILES += \
     quad.vert \

@@ -3,11 +3,6 @@
 
 #define DEBUG
 
-#ifdef DEBUG
-#define pdebug(x) qDebug() << x
-#else
-#define pdebug(x) do {} while (0)
-#endif
 
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 
@@ -17,7 +12,7 @@
 #include <QGLWidget>
 #include <QTime>
 #include <QElapsedTimer>
-#include <QGLShaderProgram>
+#include <QDebug>
 #include <QApplication>
 #include <QFocusEvent>
 
@@ -33,6 +28,15 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_operation.hpp>
+
+
+#ifdef DEBUG
+#define pdebug(x) qDebug() << x
+#else
+#define pdebug(x) do {} while (0)
+#endif
+
+#include <shaderprogram.h>
 
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 
@@ -83,6 +87,8 @@ typedef struct {
     GLuint vboID;
 } fsquad_t;
 
+
+
 class RenderWidget : public QGLWidget
 {
     Q_OBJECT
@@ -108,7 +114,7 @@ protected:
     void processInput(float timeSinceLastUpdate);
     void updateCamera();
     void drawFullScreenQuad(GLuint vert);
-    void generateTexture(texture_t texStruct, QGLShaderProgram *shader);
+    void generateTexture(texture_t texStruct, ShaderProgram *shader);
     void generateFlatMesh(mesh_t &mesh, int width, int height, float scale = 1.0);
     void generateSphere(mesh_t &mesh, int width, int height, float radius = 1.0);
     void generateQuad(fsquad_t &mesh);
@@ -117,6 +123,9 @@ protected:
     void initTexture(texture_t &texture, int width, int height);
 
     bool eventFilter(QObject *watched, QEvent *event);
+
+
+
 private:
 
     struct {
@@ -200,12 +209,12 @@ private:
     texture_t _cloudTexture[8];
     texture_t _waterTexture[8];
 
-    QGLShaderProgram *_sky;
-    QGLShaderProgram *_terrain;
-    QGLShaderProgram *_clouds;
-    QGLShaderProgram* _ground[2];
-    QGLShaderProgram *_flow;
-    QGLShaderProgram* _water[2];
+    ShaderProgram *_sky;
+    ShaderProgram *_terrain;
+    ShaderProgram *_clouds;
+    ShaderProgram* _ground[2];
+    ShaderProgram *_flow;
+    ShaderProgram* _water[2];
 
     mesh_t _skysphere;
 
