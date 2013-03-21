@@ -172,57 +172,57 @@ void RenderWidget::initializeGL()
     /* generate shaders */
     pdebug("Compiling Sky shader...");
     _sky = new ShaderProgram();
-    _sky->addVertex("Sky.vert");
-    _sky->addFragment("Sky.frag");
+    _sky->addVertex(std::string("Sky.vert"));
+    _sky->addFragment(std::string("Sky.frag"));
     _sky->link();
 
     pdebug("Compiling Ground shader...");
     _ground[0] = new ShaderProgram();
-    _ground[0]->addVertex("Ground.vert");
-    _ground[0]->addFragment("GroundNoCaustic.frag");
-    _ground[0]->addTesselationControl("Ground.tessc");
-    _ground[0]->addTesselationEvaluation("Ground.tesse");
+    _ground[0]->addVertex(std::string("Ground.vert"));
+    _ground[0]->addFragment(std::string("GroundNoCaustic.frag"));
+    _ground[0]->addTesselationControl(std::string("Ground.tessc"));
+    _ground[0]->addTesselationEvaluation(std::string("Ground.tesse"));
     _ground[0]->link();
 
     _ground[1] = new ShaderProgram();
-    _ground[1]->addVertex("Ground.vert");
-    _ground[1]->addFragment("Ground.frag");
-    _ground[1]->addTesselationControl("Ground.tessc");
-    _ground[1]->addTesselationEvaluation("Ground.tesse");
+    _ground[1]->addVertex(std::string("Ground.vert"));
+    _ground[1]->addFragment(std::string("Ground.frag"));
+    _ground[1]->addTesselationControl(std::string("Ground.tessc"));
+    _ground[1]->addTesselationEvaluation(std::string("Ground.tesse"));
     _ground[1]->link();
 
     pdebug("Compiling Water shader...");
 
     _water[0] = new ShaderProgram();
-    _water[0]->addVertex("tesselate.vert");
-    _water[0]->addFragment("WaterFast.frag");
-    _water[0]->addTesselationControl("Water.tessc");
-    _water[0]->addTesselationEvaluation("Water.tesse");
+    _water[0]->addVertex(std::string("tesselate.vert"));
+    _water[0]->addFragment(std::string("WaterFast.frag"));
+    _water[0]->addTesselationControl(std::string("Water.tessc"));
+    _water[0]->addTesselationEvaluation(std::string("Water.tesse"));
     _water[0]->link();
 
     _water[1] = new ShaderProgram();
-    _water[1]->addVertex("tesselate.vert");
-    _water[1]->addFragment("Water.frag");
-    _water[1]->addTesselationControl("Water.tessc");
-    _water[1]->addTesselationEvaluation("Water.tesse");
+    _water[1]->addVertex(std::string("tesselate.vert"));
+    _water[1]->addFragment(std::string("Water.frag"));
+    _water[1]->addTesselationControl(std::string("Water.tessc"));
+    _water[1]->addTesselationEvaluation(std::string("Water.tesse"));
     _water[1]->link();
 
     pdebug("Compiling flow shader...");
     _flow = new ShaderProgram();
-    _flow->addVertex("quad.vert");
-    _flow->addFragment("flow.frag");
+    _flow->addVertex(std::string("quad.vert"));
+    _flow->addFragment(std::string("flow.frag"));
     _flow->link();
 
     pdebug("Compiling cloud shader...");
     _clouds = new ShaderProgram();
-    _clouds->addVertex("quad.vert");
-    _clouds->addFragment("clouds.frag");
+    _clouds->addVertex(std::string("quad.vert"));
+    _clouds->addFragment(std::string("clouds.frag"));
     _clouds->link();
 
     pdebug("Compiling terrain shader...");
     _terrain = new ShaderProgram();
-    _terrain->addVertex("quad.vert");
-    _terrain->addFragment("terrain.frag");
+    _terrain->addVertex(std::string("quad.vert"));
+    _terrain->addFragment(std::string("terrain.frag"));
     _terrain->link();
 
 
