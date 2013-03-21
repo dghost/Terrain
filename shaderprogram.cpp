@@ -15,6 +15,31 @@ ShaderProgram::ShaderProgram()
 
 ShaderProgram::~ShaderProgram()
 {
+    if (_shaders.vertex != 0)
+    {
+        glDeleteShader(_shaders.vertex);
+    }
+    if (_shaders.fragment != 0)
+    {
+        glDeleteShader(_shaders.fragment);
+    }
+    if (_shaders.geometry != 0)
+    {
+        glDeleteShader(_shaders.geometry);
+    }
+    if (_shaders.tesselation_control != 0)
+    {
+        glDeleteShader(_shaders.tesselation_control);
+    }
+    if (_shaders.tesselation_evaluation != 0)
+    {
+        glDeleteShader(_shaders.tesselation_evaluation);
+    }
+
+    if (_shaderHandle != 0)
+    {
+        glDeleteProgram(_shaderHandle);
+    }
 }
 
 inline bool ShaderProgram::oglInit(){
