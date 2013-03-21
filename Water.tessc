@@ -1,0 +1,99 @@
+#version 400
+layout(vertices = 3) out;
+
+in vec3 controlPoint[];
+in vec2 controlTexCoords[];
+//in vec4 controlMVP[];
+
+out vec3 evaluationPoint[];
+out vec2 evaluationTexCoords[];
+
+uniform mat4 viewMatrix;
+uniform mat4 projMatrix;
+
+uniform float tessLevelInner = 4.0; // controlled by keyboard buttons
+uniform float tessLevelOuter = 4.0; // controlled by keyboard buttons
+
+uniform vec2 screen_size = vec2(1280,720);
+
+uniform float lod_factor = 0.2;
+
+vec4 project(vec4 vertex){
+    vec4 result = projMatrix * viewMatrix * vertex;
+    result /= result.w;
+    return result;
+}
+
+vec2 screen_space(vec4 vertex){
+    return (clamp(vertex.xy, -1.0, 1.0)+1) * (screen_size*0.5);
+}
+
+float clipToScreenSpaceTesselation(vec4 v0, vec4 v1)
+{
+    vec2 clip0 = screen_space(v0);
+    vec2 clip1 = screen_space(v1);
+    return clamp(distance(v0, v1)/lod_factor,1.0,64.0);
+}
+
+float level(vec3 v0, vec3 v1){
+    vec3 centre = 0.5 * (v0+v1);
+    vec4 view0 = viewMatrix * vec4(centre,1);
+    vec4 view1 = view0;
+    view1.x += distance(v0,v1);
+
+    vec4 clip0  = projMatrix * view0;
+    vec4 clip1  = projMatrix * view1;
+    clip0 /= clip0.w;
+    clip1 /= clip1.w;
+
+    return clipToScreenSpaceTesselation(clip0,clip1);
+}
+
+bool offscreen(vec4 vertex){
+    if(vertex.z < 0.0){
+        return true;
+    }
+    return all(
+                bvec4(lessThan(vertex.xy, vec2(-1.7)),
+                greaterThan(vertex.xy, vec2(1.7)))
+                );
+}
+
+
+void main() {
+    evaluationPoint[gl_InvocationID] = controlPoint[gl_InvocationID];
+    evaluationTexCoords[gl_InvocationID] = controlTexCoords[gl_InvocationID];
+
+    if(gl_InvocationID == 0){
+        vec4 v0 = project(vec4(controlPoint[0],1.0));
+        vec4 v1 = project(vec4(controlPoint[1],1.0));
+        vec4 v2 = project(vec4(controlPoint[2],1.0));
+
+        if(all(bvec3(
+                   offscreen(v0),
+                   offscreen(v1),
+                   offscreen(v2)
+                   ))){
+            gl_TessLevelInner[0] = 0;
+            gl_TessLevelOuter[0] = 0;
+            gl_TessLevelOuter[1] = 0;
+            gl_TessLevelOuter[2] = 0;
+        }
+        else{
+            vec2 ss0 = screen_space(v0);
+            vec2 ss1 = screen_space(v1);
+            vec2 ss2 = screen_space(v2);
+
+            float e0 = level(controlPoint[1], controlPoint[2]);
+            float e1 = level(controlPoint[0], controlPoint[2]);
+            float e2 = level(controlPoint[1], controlPoint[0]);
+
+
+            gl_TessLevelInner[0] = (e0 + e1 + e2) / 3.0;
+            gl_TessLevelOuter[0] = e0;
+            gl_TessLevelOuter[1] = e1;
+            gl_TessLevelOuter[2] = e2;
+        }
+    }
+
+}

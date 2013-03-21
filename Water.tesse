@@ -1,0 +1,57 @@
+#version 400
+layout(triangles,equal_spacing, ccw) in;
+
+in vec3 evaluationPoint[];
+in vec2 evaluationTexCoords[];
+
+
+uniform vec3 light_pos;
+
+uniform mat4 viewMatrix;
+uniform mat4 projMatrix;
+
+
+uniform sampler2D cloudTexture;
+uniform sampler2D groundTexture;
+uniform sampler2D waterTexture;
+
+out vec3 light_dir;
+out vec2 skyCoords;
+out vec2 texCoords;
+out vec3 normal;
+out vec3 eye;
+
+void main() {
+vec3 p0 = gl_TessCoord.x * evaluationPoint[0]; // x is one corner
+vec3 p1 = gl_TessCoord.y * evaluationPoint[1]; // y is the 2nd corner
+vec3 p2 = gl_TessCoord.z * evaluationPoint[2]; // z is the 3rd corner (ignore when using quads)
+vec4 pos = vec4(p0 + p1 + p2,1.0);
+
+  vec2 t0 = gl_TessCoord.x * evaluationTexCoords[0]; // x is one corner
+  vec2 t1 = gl_TessCoord.y * evaluationTexCoords[1]; // y is the 2nd corner
+  vec2 t2 = gl_TessCoord.z * evaluationTexCoords[2]; // z is the 3rd corner (ignore when using quads)
+  texCoords = t0 + t1 + t2;
+
+
+    // read in the texture value
+    float tex = texture(waterTexture,texCoords).a;
+
+
+    // get the coordinates for the clouds
+    skyCoords =  ((texCoords.xy + 3000.0)/6000.0);
+
+
+    // generate adjusted position
+
+    pos.z += tex * 3.0;
+
+    // generate view vector
+    eye = -vec3(viewMatrix * pos);
+
+    light_dir = vec3(viewMatrix * vec4(light_pos,0.0));
+
+    // generate light vector
+    // generate the clip space coordinate
+    gl_Position = projMatrix * viewMatrix * pos;
+
+}

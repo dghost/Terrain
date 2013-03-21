@@ -1,4 +1,4 @@
-#version 130
+#version 400
 
 in vec2 texCoords;
 in vec2 skyCoords;
@@ -24,7 +24,7 @@ void main(void)
 
     // read in offset
 
-    float displacement = texture2D(groundTexture,texCoords).a;
+    float displacement = texture(groundTexture,texCoords).a;
     //displacement = displacement * displacement + displacement;
     displacement *= 125.0;
 
@@ -52,7 +52,7 @@ void main(void)
     }
     color /= 255.0;
 
-    vec3 normal = mat3(viewMatrix) * texture2D(groundTexture,texCoords).rgb;
+    vec3 normal = mat3(viewMatrix) * texture(groundTexture,texCoords).rgb;
     vec3 L = normalize(light_dir);
     vec3 N = normalize(normal);
     float diffuse = max(dot(N,L),0.0);

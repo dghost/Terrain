@@ -35,11 +35,15 @@ OTHER_FILES += \
     Ground.vert \
     Ground.frag \
     flow.frag \
-    Water.vert \
     Water.frag \
     clouds.frag \
     terrain.frag \
     WaterFast.frag \
-    GroundNoCaustic.frag
+    GroundNoCaustic.frag \
+    Water.tesse \
+    Ground.tesse \
+    tesselate.vert \
+    Ground.tessc \
+    Water.tessc
 
 INCLUDEPATH += .\

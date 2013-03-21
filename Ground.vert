@@ -1,34 +1,26 @@
-#version 130
+#version 400
 
 in vec3 inVertex;
-in vec3 inNormal;
 in vec2 inTexCoord;
 
+//out vec4 controlMVP;
+out vec3 controlPoint;
+out vec2 controlTexCoords;
 
-uniform sampler2D groundTexture;
-
-uniform vec3 light_pos;
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
 
-out vec2 skyCoords;
-out vec2 texCoords;
-out vec3 light_dir;
-
-
-
+uniform sampler2D groundTexture;
 
 void main(void)
 {
-    texCoords = inTexCoord;
-    skyCoords =  ((inVertex.xy  + 3000.0 ) / 6000.0);
-
-
-    vec4 pos = vec4(inVertex,1.0);
-    light_dir = vec3(viewMatrix * vec4(light_pos,0.0));
-    float offset = texture2D(groundTexture,inTexCoord).a;
+    vec3 pos = inVertex;
+    float offset = texture(groundTexture,inTexCoord).a;
     //float zPos = offset * 125.0;
     float zPos = offset * 125.0;
     pos.z += zPos;
-    gl_Position = projMatrix * viewMatrix * pos;
+
+  //  controlMVP = projMatrix * viewMatrix * pos;
+    controlPoint = pos;
+    controlTexCoords = inTexCoord;
 }

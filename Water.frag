@@ -1,4 +1,4 @@
-#version 130
+#version 400
 
 in vec2 texCoords;
 in vec2 skyCoords;
@@ -20,8 +20,8 @@ void main(void)
 
 
     // value is 1 if no cloud, 0 if cloud
-    float value = 1.0 - smoothstep(-1.0, 1.0 ,texture2D(cloudTexture,skyCoords).r) * 0.5;
-    vec3 n =  texture2D(waterTexture,texCoords).rgb;
+    float value = 1.0 - smoothstep(-1.0, 1.0 ,texture(cloudTexture,skyCoords).r) * 0.5;
+    vec3 n =  texture(waterTexture,texCoords).rgb;
 
     // calculate the normal
     vec3 normal = mat3(viewMatrix) * n;

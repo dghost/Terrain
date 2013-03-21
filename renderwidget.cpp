@@ -180,23 +180,32 @@ void RenderWidget::initializeGL()
     _ground[0] = new ShaderProgram();
     _ground[0]->addVertex("Ground.vert");
     _ground[0]->addFragment("GroundNoCaustic.frag");
+    _ground[0]->addTesselationControl("Ground.tessc");
+    _ground[0]->addTesselationEvaluation("Ground.tesse");
     _ground[0]->link();
 
     _ground[1] = new ShaderProgram();
     _ground[1]->addVertex("Ground.vert");
     _ground[1]->addFragment("Ground.frag");
+    _ground[1]->addTesselationControl("Ground.tessc");
+    _ground[1]->addTesselationEvaluation("Ground.tesse");
     _ground[1]->link();
 
     pdebug("Compiling Water shader...");
-    _water[1] = new ShaderProgram();
-    _water[1]->addVertex("Water.vert");
-    _water[1]->addFragment("Water.frag");
-    _water[1]->link();
 
     _water[0] = new ShaderProgram();
-    _water[0]->addVertex("Water.vert");
+    _water[0]->addVertex("tesselate.vert");
     _water[0]->addFragment("WaterFast.frag");
+    _water[0]->addTesselationControl("Water.tessc");
+    _water[0]->addTesselationEvaluation("Water.tesse");
     _water[0]->link();
+
+    _water[1] = new ShaderProgram();
+    _water[1]->addVertex("tesselate.vert");
+    _water[1]->addFragment("Water.frag");
+    _water[1]->addTesselationControl("Water.tessc");
+    _water[1]->addTesselationEvaluation("Water.tesse");
+    _water[1]->link();
 
     pdebug("Compiling flow shader...");
     _flow = new ShaderProgram();
@@ -217,19 +226,21 @@ void RenderWidget::initializeGL()
     _terrain->link();
 
 
-    int size = 256;
+    int texSize = 256;
+    int meshSize = 16;
     for (int i = 0; i < 8 ; i++)
     {
-        _hud.sizes[i] = QString("%1 x %1").arg(size);
-        pdebug(QString("Generating flat mesh of size %1").arg(size));
-        generateFlatMesh(_flatMesh[i],size,size,2048.0 / size);
+        _hud.texSizes[i] = QString("%1 x %1").arg(texSize);
+        _hud.meshSizes[i] = QString("%1 x %1").arg(meshSize);
+        pdebug(QString("Generating flat mesh of size %1").arg(meshSize));
+        generateFlatMesh(_flatMesh[i],meshSize,meshSize,2048.0 / meshSize);
 
-        pdebug(QString("Generating textures of size %1").arg(size));
-        initTexture(_waterTexture[i],size,size);
-        initTexture(_groundTexture[i],size,size);
-        initTexture(_cloudTexture[i],size,size);
-
-        size += 256;
+        pdebug(QString("Generating textures of size %1").arg(texSize));
+        initTexture(_waterTexture[i],texSize,texSize);
+        initTexture(_groundTexture[i],texSize,texSize);
+        initTexture(_cloudTexture[i],texSize,texSize);
+        texSize += 256;
+        meshSize *= 2;
     }
 
     pdebug("Generating sphere mesh...");
@@ -396,7 +407,7 @@ void RenderWidget::paintGL()
             glUniformMatrix4fv(pPos,1,0,glm::value_ptr(_camera.projMatrix));
             glUniformMatrix4fv(vPos,1,0,glm::value_ptr(_camera.viewMatrix));
 
-            drawMesh(_flatMesh[_groundMesh],vvPos,vnPos,vtPos);
+            drawTessMesh(_flatMesh[_groundMesh],vvPos,vnPos,vtPos);
             _ground[index]->release();
             trisRendered += _flatMesh[_groundMesh].indexCount / 3;
 
@@ -437,7 +448,7 @@ void RenderWidget::paintGL()
             glUniformMatrix4fv(pPos,1,0,glm::value_ptr(_camera.projMatrix));
             glUniformMatrix4fv(vPos,1,0,glm::value_ptr(_camera.viewMatrix));
 
-            drawMesh(_flatMesh[_waterMesh],vvPos,vnPos,vtPos);
+            drawTessMesh(_flatMesh[_waterMesh],vvPos,vnPos,vtPos);
 
             _water[index]->release();
 
@@ -453,7 +464,7 @@ void RenderWidget::paintGL()
     }
 
 
-    if (_skysphere.mesh != NULL && _skysphere.index != NULL)
+    if (_skysphere.mesh != NULL && _skysphere.index != NULL && !_wireFrame)
     {
 
 
@@ -507,9 +518,6 @@ void RenderWidget::drawHUD()
     renderText(10,offset,_hud.resolution,this->font());
     offset += 20;
 
-    renderText(10,offset,_hud.numTris,this->font());
-    offset += 20;
-
     if (_gndShader == 0)
     {
         text = QString("Ground: No Caustics");
@@ -520,11 +528,11 @@ void RenderWidget::drawHUD()
     renderText(10,offset,text,this->font());
     offset += 20;
 
-    text = QString("Ground mesh size: %1").arg(_hud.sizes[_groundMesh]);
+    text = QString("Ground patch size: %1").arg(_hud.meshSizes[_groundMesh]);
     renderText(10,offset,text,this->font());
     offset += 20;
 
-    text = QString("Ground texture size: %1").arg(_hud.sizes[_gndTexture]);
+    text = QString("Ground texture size: %1").arg(_hud.texSizes[_gndTexture]);
     renderText(10,offset,text,this->font());
     offset += 20;
 
@@ -537,16 +545,16 @@ void RenderWidget::drawHUD()
     }
     renderText(10,offset,text,this->font());
     offset += 20;
-    text = QString("Water mesh size: %1").arg(_hud.sizes[_waterMesh]);
+    text = QString("Water patch size: %1").arg(_hud.meshSizes[_waterMesh]);
     renderText(10,offset,text,this->font());
     offset += 20;
 
 
-    text = QString("Water texture size: %1").arg(_hud.sizes[_wtrTexture]);
+    text = QString("Water texture size: %1").arg(_hud.texSizes[_wtrTexture]);
     renderText(10,offset,text,this->font());
     offset += 20;
 
-    text = QString("Cloud texture size: %1").arg(_hud.sizes[_cldTexture]);
+    text = QString("Cloud texture size: %1").arg(_hud.texSizes[_cldTexture]);
     renderText(10,offset,text,this->font());
     offset += 20;
 
@@ -686,6 +694,28 @@ void RenderWidget::drawMesh(mesh_t &mesh,GLuint vert,GLuint norm,GLuint tex)
         glEnableVertexAttribArray(norm);
         glEnableVertexAttribArray(tex);
         glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, mesh.index );
+        glDisableVertexAttribArray(vert);
+        glDisableVertexAttribArray(norm);
+        glDisableVertexAttribArray(tex);
+        glBindBuffer(GL_ARRAY_BUFFER,0);
+    }
+
+}
+
+// draw a mesh
+void RenderWidget::drawTessMesh(mesh_t &mesh,GLuint vert,GLuint norm,GLuint tex)
+{
+    if (mesh.vboID != 0)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER,mesh.vboID);
+        glVertexAttribPointer(vert,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(0 ));
+        glVertexAttribPointer(norm,3,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(3* sizeof(GLfloat)));
+        glVertexAttribPointer(tex,2,GL_FLOAT,GL_FALSE,sizeof(vertex_t),BUFFER_OFFSET(6* sizeof(GLfloat)));
+        glEnableVertexAttribArray(vert);
+        glEnableVertexAttribArray(norm);
+        glEnableVertexAttribArray(tex);
+        glPatchParameteri(GL_PATCH_VERTICES,3);
+        glDrawElements(GL_PATCHES, mesh.indexCount, GL_UNSIGNED_INT, mesh.index );
         glDisableVertexAttribArray(vert);
         glDisableVertexAttribArray(norm);
         glDisableVertexAttribArray(tex);
@@ -865,7 +895,7 @@ void RenderWidget::generateFlatMesh(mesh_t &mesh, int width, int height, float s
     {
         for(int i = 0 ; i < width ; i++)
         {
-            for (int j = 0 ; j < height-1 ; j+=2)
+            for (int j = 0 ; j < height ; j++)
             {
                 mesh.index[count] = i * (height + 1) + j;
                 count++;
@@ -881,6 +911,7 @@ void RenderWidget::generateFlatMesh(mesh_t &mesh, int width, int height, float s
                 mesh.index[count] = (i + 1) * (height + 1) + (j + 1);
                 count++;
 
+                /*
                 mesh.index[count] = (i + 1) * (height + 1) + (j + 1);
                 count++;
                 mesh.index[count] = (i + 1) * (height + 1) + (j + 2);
@@ -894,7 +925,7 @@ void RenderWidget::generateFlatMesh(mesh_t &mesh, int width, int height, float s
                 mesh.index[count] = (i + 1) * (height + 1) + (j + 2);
                 count++;
                 mesh.index[count] = (i) * (height + 1) + (j + 2);
-                count++;
+                count++;*/
             }
 
         }

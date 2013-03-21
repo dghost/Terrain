@@ -119,6 +119,7 @@ protected:
     void generateSphere(mesh_t &mesh, int width, int height, float radius = 1.0);
     void generateQuad(fsquad_t &mesh);
     void drawMesh(mesh_t &mesh, GLuint vert, GLuint norm, GLuint tex);
+    void drawTessMesh(mesh_t &mesh, GLuint vert, GLuint norm, GLuint tex);
     void drawHUD(void);
     void initTexture(texture_t &texture, int width, int height);
 
@@ -188,7 +189,8 @@ private:
         QString maxSize;
         QString frameTime;
         QString numTris;
-        QString sizes[8];
+        QString texSizes[8];
+        QString meshSizes[8];
     } _hud;
     int _timerID;
 
