@@ -39,7 +39,7 @@ RenderWidget::RenderWidget(const QGLFormat& format, QGLWidget *parent) :
 
     _groundMesh = 4;
     _waterMesh = 0;
-    _gndTexture = 7;
+    _gndTexture = 4;
     _wtrTexture = 3;
     _cldTexture = 1;
 
@@ -226,7 +226,7 @@ void RenderWidget::initializeGL()
     _terrain->link();
 
 
-    int texSize = 256;
+    int texSize = 128;
     int meshSize = 4;
     for (int i = 0; i < 8 ; i++)
     {
@@ -239,7 +239,7 @@ void RenderWidget::initializeGL()
         initTexture(_waterTexture[i],texSize,texSize);
         initTexture(_groundTexture[i],texSize,texSize);
         initTexture(_cloudTexture[i],texSize,texSize);
-        texSize += 256;
+        texSize *= 2;
         meshSize *= 2;
     }
 

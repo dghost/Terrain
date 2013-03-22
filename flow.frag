@@ -212,14 +212,16 @@ float flow(vec2 p, float time)
 float flow(vec2 p, float time)
 {
 
-    float result = snoise(vec3(p * 4.0,time)) * 0.25;
+   float result = snoise(vec3(p * 2.0,time)) * 0.5;
+    result += snoise(vec3(p * 4.0,time)) * 0.25;
     result += snoise(vec3(p * 8.0,time)) * 0.125;
-    //result += snoise(vec3(p * 16.0,time)) * 0.0625;
+//    result += snoise(vec3(p * 16.0,time)) * 0.0625;
 
+    result *= 2.0;
     vec2 g1, g2;
-   float n1 = srdnoise(p*0.5, 0.2*time, g1);
-   float n2 = srdnoise(p*2.0 + g1*0.5, 0.51*time, g2);
-   float n3 = srdnoise(p*4.0 + g1*0.5 + g2*0.25, 0.77*time, g2);
+    float n1 = srdnoise(p*0.5, 0.2*time, g1);
+    float n2 = srdnoise(p*2.0 + g1*0.5, 0.51*time, g2);
+    float n3 = srdnoise(p*4.0 + g1*0.5 + g2*0.25, 0.77*time, g2);
     result +=  n1+ 0.75*n2 + 0.5*n3;
 
     return result;

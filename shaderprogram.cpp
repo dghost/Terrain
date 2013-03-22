@@ -60,7 +60,7 @@ GLuint ShaderProgram::compileShader(GLenum kind,std::string fileName)
         return 0;
     GLuint handle = 0;
 
-    std::ifstream ifs(fileName);
+    std::ifstream ifs(fileName.c_str());
 
     if (!ifs.good())
     {
