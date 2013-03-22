@@ -37,10 +37,10 @@ RenderWidget::RenderWidget(const QGLFormat& format, QGLWidget *parent) :
 
     _paused = false;
 
-    _groundMesh = 1;
+    _groundMesh = 4;
     _waterMesh = 0;
-    _gndTexture = 1;
-    _wtrTexture = 1;
+    _gndTexture = 7;
+    _wtrTexture = 3;
     _cldTexture = 1;
 
     _wtrShader = 1;
@@ -227,7 +227,7 @@ void RenderWidget::initializeGL()
 
 
     int texSize = 256;
-    int meshSize = 16;
+    int meshSize = 4;
     for (int i = 0; i < 8 ; i++)
     {
         _hud.texSizes[i] = QString("%1 x %1").arg(texSize);

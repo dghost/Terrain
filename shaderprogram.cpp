@@ -67,7 +67,11 @@ GLuint ShaderProgram::compileShader(GLenum kind,std::string fileName)
         std::cout << "Error reading shader " << fileName << "\n";
         return 0;
     }
-    std::string shaderSource((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+
+    std::stringstream buffer;
+    buffer << ifs.rdbuf();
+
+    std::string shaderSource = buffer.str();
     ifs.close();
 
     if (shaderSource.empty())
