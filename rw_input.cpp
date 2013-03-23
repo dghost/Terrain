@@ -84,7 +84,7 @@ void RenderWidget::keyPressEvent(QKeyEvent *event)
 
         if(event->key() == Qt::Key_R  && event->modifiers().testFlag(Qt::ControlModifier))
         {
-            for (int i = 0 ; i < 8 ; i++)
+            for (int i = 0 ; i < 7 ; i++)
             {
                 generateTexture(_groundTexture[i],_terrain);
             }
@@ -107,7 +107,7 @@ void RenderWidget::keyPressEvent(QKeyEvent *event)
 
         if(event->key() == Qt::Key_BracketRight)
         {
-            if (_groundMesh < 7)
+            if (_groundMesh < 6)
                 _groundMesh++;
         }
 
@@ -119,7 +119,7 @@ void RenderWidget::keyPressEvent(QKeyEvent *event)
 
         if(event->key() == Qt::Key_Apostrophe)
         {
-            if (_waterMesh < 7)
+            if (_waterMesh < 6)
                 _waterMesh++;
         }
         if(event->key() == Qt::Key_O)
@@ -130,7 +130,7 @@ void RenderWidget::keyPressEvent(QKeyEvent *event)
 
         if(event->key() == Qt::Key_P)
         {
-            if (_gndTexture < 7)
+            if (_gndTexture < 6)
                 _gndTexture++;
         }
         if(event->key() == Qt::Key_K)
@@ -141,7 +141,7 @@ void RenderWidget::keyPressEvent(QKeyEvent *event)
 
         if(event->key() == Qt::Key_L)
         {
-            if (_wtrTexture < 7)
+            if (_wtrTexture < 6)
                 _wtrTexture++;
         }
         if(event->key() == Qt::Key_Comma)
@@ -152,7 +152,7 @@ void RenderWidget::keyPressEvent(QKeyEvent *event)
 
         if(event->key() == Qt::Key_Period)
         {
-            if (_cldTexture < 7)
+            if (_cldTexture < 6)
                 _cldTexture++;
         }
 

@@ -7,7 +7,7 @@
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 
 #ifndef __APPLE__
-#include "gl_core_4_0.h"
+#include "gl/gl_core_4_0.h"
 #endif
 #include <QGLWidget>
 #include <QTime>
@@ -189,15 +189,15 @@ private:
         QString maxSize;
         QString frameTime;
         QString numTris;
-        QString texSizes[8];
-        QString meshSizes[8];
+        QString texSizes[7];
+        QString meshSizes[7];
     } _hud;
     int _timerID;
 
     glm::vec3 lightPosition;
     glm::vec3 _lightMovement;
     fsquad_t _quad;
-    mesh_t _flatMesh[8];
+    mesh_t _flatMesh[7];
     int _groundMesh;
     int _waterMesh;
     int _gndTexture;
@@ -207,9 +207,9 @@ private:
     int _wtrShader;
     int _gndShader;
 
-    texture_t _groundTexture[8];
-    texture_t _cloudTexture[8];
-    texture_t _waterTexture[8];
+    texture_t _groundTexture[7];
+    texture_t _cloudTexture[7];
+    texture_t _waterTexture[7];
 
     ShaderProgram *_sky;
     ShaderProgram *_terrain;

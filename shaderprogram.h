@@ -1,7 +1,7 @@
 #ifndef SHADERPROGRAM_H
 #define SHADERPROGRAM_H
 
-#include "gl_core_4_0.h"
+#include "gl/gl_core_4_0.h"
 #include <string>
 #include <iostream>
 #include <fstream>

@@ -37,11 +37,11 @@ RenderWidget::RenderWidget(const QGLFormat& format, QGLWidget *parent) :
 
     _paused = false;
 
-    _groundMesh = 4;
+    _groundMesh = 3;
     _waterMesh = 0;
-    _gndTexture = 4;
-    _wtrTexture = 3;
-    _cldTexture = 1;
+    _gndTexture = 5;
+    _wtrTexture = 4;
+    _cldTexture = 3;
 
     _wtrShader = 1;
     _gndShader = 1;
@@ -226,9 +226,9 @@ void RenderWidget::initializeGL()
     _terrain->link();
 
 
-    int texSize = 128;
-    int meshSize = 4;
-    for (int i = 0; i < 8 ; i++)
+    int texSize = 64;
+    int meshSize = 8;
+    for (int i = 0; i < 7 ; i++)
     {
         _hud.texSizes[i] = QString("%1 x %1").arg(texSize);
         _hud.meshSizes[i] = QString("%1 x %1").arg(meshSize);
@@ -395,7 +395,7 @@ void RenderWidget::paintGL()
             GLint lPos = _ground[index]->uniformLocation("light_pos");
             GLint vPos = _ground[index]->uniformLocation("viewMatrix");
             GLint pPos = _ground[index]->uniformLocation("projMatrix");
-
+            GLint sPos = _water[index]->uniformLocation("screen_size");
             GLuint vnPos = _ground[index]->attributeLocation("inNormal");
             GLuint vtPos = _ground[index]->attributeLocation("inTexCoord");
             GLuint vvPos = _ground[index]->attributeLocation("inVertex");
@@ -406,7 +406,7 @@ void RenderWidget::paintGL()
             glUniform3fv(lPos,1,glm::value_ptr(lightPosition));
             glUniformMatrix4fv(pPos,1,0,glm::value_ptr(_camera.projMatrix));
             glUniformMatrix4fv(vPos,1,0,glm::value_ptr(_camera.viewMatrix));
-
+            glUniform2f(sPos,width(),height());
             drawTessMesh(_flatMesh[_groundMesh],vvPos,vnPos,vtPos);
             _ground[index]->release();
             trisRendered += _flatMesh[_groundMesh].indexCount / 3;
@@ -423,7 +423,7 @@ void RenderWidget::paintGL()
         {
             int index = _wtrShader;
             //glBindBuffer(GL_ARRAY_BUFFER,_flatMesh[_waterMesh].vboID);
-            if (_modes.blendWater)
+            if (_modes.blendWater && !_wireFrame)
             {
                 glEnable(GL_BLEND);
                 glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -436,7 +436,7 @@ void RenderWidget::paintGL()
             GLint lPos = _water[index]->uniformLocation("light_pos");
             GLint vPos = _water[index]->uniformLocation("viewMatrix");
             GLint pPos = _water[index]->uniformLocation("projMatrix");
-
+            GLint sPos = _water[index]->uniformLocation("screen_size");
             GLuint vnPos = _water[index]->attributeLocation("inNormal");
             GLuint vtPos = _water[index]->attributeLocation("inTexCoord");
             GLuint vvPos = _water[index]->attributeLocation("inVertex");
@@ -447,12 +447,12 @@ void RenderWidget::paintGL()
             glUniform3fv(lPos,1,glm::value_ptr(lightPosition));
             glUniformMatrix4fv(pPos,1,0,glm::value_ptr(_camera.projMatrix));
             glUniformMatrix4fv(vPos,1,0,glm::value_ptr(_camera.viewMatrix));
-
+            glUniform2f(sPos,width(),height());
             drawTessMesh(_flatMesh[_waterMesh],vvPos,vnPos,vtPos);
 
             _water[index]->release();
 
-            if (_modes.blendWater)
+            if (_modes.blendWater && !_wireFrame)
             {
                 glDisable(GL_BLEND);
             }
