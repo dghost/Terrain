@@ -15,31 +15,7 @@ ShaderProgram::ShaderProgram()
 
 ShaderProgram::~ShaderProgram()
 {
-    if (_shaders.vertex != 0)
-    {
-        glDeleteShader(_shaders.vertex);
-    }
-    if (_shaders.fragment != 0)
-    {
-        glDeleteShader(_shaders.fragment);
-    }
-    if (_shaders.geometry != 0)
-    {
-        glDeleteShader(_shaders.geometry);
-    }
-    if (_shaders.tesselation_control != 0)
-    {
-        glDeleteShader(_shaders.tesselation_control);
-    }
-    if (_shaders.tesselation_evaluation != 0)
-    {
-        glDeleteShader(_shaders.tesselation_evaluation);
-    }
-
-    if (_shaderHandle != 0)
-    {
-        glDeleteProgram(_shaderHandle);
-    }
+    deleteProgram();
 }
 
 inline bool ShaderProgram::oglInit(){
@@ -215,6 +191,23 @@ bool ShaderProgram::link(void){
         delete strInfoLog;
         return 0;
     }
+    glValidateProgram(programHandle);
+    glGetProgramiv(programHandle,GL_VALIDATE_STATUS,&status);
+    if (status == GL_FALSE)
+    {
+        std::cout << "Error validating program: ";
+
+        GLint infoLogLength;
+        glGetProgramiv(programHandle, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+        GLchar* strInfoLog = new GLchar[infoLogLength + 1];
+        glGetProgramInfoLog(programHandle, infoLogLength, NULL, strInfoLog);
+        std::cout << strInfoLog;
+        glDeleteProgram(programHandle);
+        delete strInfoLog;
+        return 0;
+    }
+
     _shaderHandle = programHandle;
     return true;
 }
@@ -245,13 +238,69 @@ void ShaderProgram::release(void){
 }
 
 GLint ShaderProgram::attributeLocation(std::string attribName){
-      if (!oglInit())
-          return -1;
-      return glGetAttribLocation(_shaderHandle,attribName.c_str());
+    if (!oglInit())
+        return -1;
+
+    std::map<std::string,GLint>::iterator loc;
+    loc = _attribMap.find(attribName);
+    GLint aLoc = -1;
+    if (loc == _attribMap.end())
+    {
+        aLoc = glGetAttribLocation(_shaderHandle,attribName.c_str());
+        _attribMap[attribName] = aLoc;
+    } else {
+        aLoc = _attribMap[attribName];
+    }
+    return aLoc;
 }
 
 GLint ShaderProgram::uniformLocation(std::string uniformName){
     if (!oglInit())
         return -1;
-    return glGetUniformLocation(_shaderHandle,uniformName.c_str());
+
+    std::map<std::string,GLint>::iterator loc;
+    loc = _uniformMap.find(uniformName);
+    GLint uLoc = -1;
+    if (loc == _uniformMap.end())
+    {
+        uLoc = glGetUniformLocation(_shaderHandle,uniformName.c_str());
+        _uniformMap[uniformName] = uLoc;
+    } else {
+        uLoc = _uniformMap[uniformName];
+    }
+    return uLoc;
+}
+
+void ShaderProgram::deleteProgram()
+{
+    if(oglInit())
+    {
+        if (_shaders.vertex != 0)
+        {
+            glDeleteShader(_shaders.vertex);
+        }
+        if (_shaders.fragment != 0)
+        {
+            glDeleteShader(_shaders.fragment);
+        }
+        if (_shaders.geometry != 0)
+        {
+            glDeleteShader(_shaders.geometry);
+        }
+        if (_shaders.tesselation_control != 0)
+        {
+            glDeleteShader(_shaders.tesselation_control);
+        }
+        if (_shaders.tesselation_evaluation != 0)
+        {
+            glDeleteShader(_shaders.tesselation_evaluation);
+        }
+
+        if (_shaderHandle != 0)
+        {
+            glDeleteProgram(_shaderHandle);
+        }
+        _attribMap.clear();
+        _uniformMap.clear();
+    }
 }

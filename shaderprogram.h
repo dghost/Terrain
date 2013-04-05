@@ -2,11 +2,13 @@
 #define SHADERPROGRAM_H
 
 #include "gl/gl_core_4_0.h"
+
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
+#include <map>
+#include <string>
 
 class ShaderProgram
 {
@@ -25,7 +27,7 @@ public:
     void release(void);
     GLint attributeLocation(std::string attribName);
     GLint uniformLocation(std::string uniformName);
-
+    void deleteProgram(void);
 private:
     struct {
         GLuint vertex;
@@ -39,6 +41,8 @@ private:
 
     GLuint compileShader(GLenum kind,std::string fileName);
 
+    std::map<std::string, GLint> _attribMap;
+    std::map<std::string, GLint> _uniformMap;
 
     bool oglInit();
 };
