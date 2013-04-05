@@ -78,17 +78,6 @@ typedef struct {
 } mesh_t;
 
 
-typedef struct {
-    GLfloat *mesh;
-    GLuint *index;
-    int vertexOffset;
-
-    int indexCount;
-    GLuint vboID;
-} fsquad_t;
-
-
-
 class RenderWidget : public QGLWidget
 {
     Q_OBJECT
@@ -113,11 +102,9 @@ protected:
     void keyReleaseEvent(QKeyEvent *event);
     void processInput(float timeSinceLastUpdate);
     void updateCamera();
-    void drawFullScreenQuad(GLuint vert);
     void generateTexture(texture_t texStruct, ShaderProgram *shader);
     void generateFlatMesh(mesh_t &mesh, int width, int height, float scale = 1.0);
     void generateSphere(mesh_t &mesh, int width, int height, float radius = 1.0);
-    void generateQuad(fsquad_t &mesh);
     void drawMesh(mesh_t &mesh, GLuint vert, GLuint norm, GLuint tex);
     void drawTessMesh(mesh_t &mesh, GLuint vert, GLuint norm, GLuint tex);
     void drawHUD(void);
@@ -196,7 +183,6 @@ private:
 
     glm::vec3 lightPosition;
     glm::vec3 _lightMovement;
-    fsquad_t _quad;
     mesh_t _flatMesh[7];
     int _groundMesh;
     int _waterMesh;

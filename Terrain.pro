@@ -28,7 +28,6 @@ HEADERS  += \
     gl/gl_core_4_0.h
 
 OTHER_FILES += \
-    quad.vert \
     Sky.frag \
     Sky.vert \
     Ground.vert \
@@ -43,6 +42,8 @@ OTHER_FILES += \
     Ground.tesse \
     tesselate.vert \
     Ground.tessc \
-    Water.tessc
+    Water.tessc \
+    quad.geom \
+    quad.vert
 
 INCLUDEPATH += .\

@@ -22,9 +22,6 @@ RenderWidget::RenderWidget(const QGLFormat& format, QGLWidget *parent) :
     _skysphere.mesh = NULL;
     _skysphere.index = NULL;
     _skysphere.vboID = 0;
-    _quad.mesh = NULL;
-    _quad.index = NULL;
-    _quad.vboID = 0;
     _timerID = 0;
     _keysDown.Q = false;
     _keysDown.W = false;
@@ -210,18 +207,23 @@ void RenderWidget::initializeGL()
     pdebug("Compiling flow shader...");
     _flow = new ShaderProgram();
     _flow->addVertex("quad.vert");
+
+    _flow->addGeometry("quad.geom");
     _flow->addFragment("flow.frag");
     _flow->link();
 
     pdebug("Compiling cloud shader...");
     _clouds = new ShaderProgram();
     _clouds->addVertex("quad.vert");
+    _clouds->addGeometry("quad.geom");
     _clouds->addFragment("clouds.frag");
     _clouds->link();
 
     pdebug("Compiling terrain shader...");
     _terrain = new ShaderProgram();
     _terrain->addVertex("quad.vert");
+
+    _terrain->addGeometry("quad.geom");
     _terrain->addFragment("terrain.frag");
     _terrain->link();
 
@@ -245,9 +247,6 @@ void RenderWidget::initializeGL()
 
     pdebug("Generating sphere mesh...");
     generateSphere(_skysphere,16,16,1.0);
-
-    pdebug("Generating full screen quad mesh...");
-    generateQuad(_quad);
 
     // standard opengl enables
     glEnable(GL_DEPTH_TEST);
@@ -724,20 +723,6 @@ void RenderWidget::drawTessMesh(mesh_t &mesh,GLuint vert,GLuint norm,GLuint tex)
 
 }
 
-// draw a full screen quad
-void RenderWidget::drawFullScreenQuad(GLuint vert)
-{
-    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-
-    glBindBuffer(GL_ARRAY_BUFFER,_quad.vboID);
-    glVertexAttribPointer(vert,4,GL_FLOAT,GL_FALSE,0,BUFFER_OFFSET(0));
-    glEnableVertexAttribArray(vert);
-    glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, _quad.index );
-    glDisableVertexAttribArray(vert);
-
-    glBindBuffer(GL_ARRAY_BUFFER,0);
-}
-
 // render to a texture
 void RenderWidget::generateTexture(texture_t texStruct, ShaderProgram *shader)
 {
@@ -764,7 +749,6 @@ void RenderWidget::generateTexture(texture_t texStruct, ShaderProgram *shader)
     glUniform1f(tLoc,_mesh.timeElapsed);
     GLint oLoc = shader->uniformLocation("in_Offsets");
     glUniform2fv(oLoc,1,glm::value_ptr(_mesh.texOffsets));
-    GLuint vPos = shader->attributeLocation("inVertex");
 
 
     GLint texel = shader->uniformLocation("in_texelSize");
@@ -773,7 +757,12 @@ void RenderWidget::generateTexture(texture_t texStruct, ShaderProgram *shader)
     glUniform2f(texel,1.0/texStruct.width,1.0/texStruct.height);
     glUniform2f(size,2048.0,2048.0);
 
-    drawFullScreenQuad(vPos);
+    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+
+    //glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, _quad.index );
+    glDrawArrays(GL_POINTS, 0, 1);
+
 
     shader->release();
 
@@ -809,51 +798,6 @@ void RenderWidget::initTexture(texture_t &texture, int width, int height)
     glBindTexture(GL_TEXTURE_2D,0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-}
-
-
-void RenderWidget::generateQuad(fsquad_t &mesh)
-{
-    if (mesh.mesh != NULL)
-        free(mesh.mesh);
-    if (mesh.index != NULL)
-        free(mesh.index);
-
-    pdebug("Generating vertices");
-    GLfloat quad[16] = {
-        -1,-1,0,1,
-        1,-1,0,1,
-        -1,1,0,1,
-        1,1,0,1
-    };
-
-    mesh.mesh = (GLfloat *) malloc(sizeof(GLfloat) * 16);
-
-    for(int i = 0 ; i < 16 ; i++)
-    {
-        mesh.mesh[i] = quad[i];
-    }
-
-    pdebug("Generating Indices");
-
-    //   GLuint indices[4] = {0,1,2,3};
-    mesh.index = (GLuint *) malloc(sizeof(GLuint) * 4);
-    mesh.index[0] = 0;
-    mesh.index[1] = 1;
-    mesh.index[2] = 2;
-    mesh.index[3] = 3;
-
-    mesh.indexCount = 4;
-    mesh.vertexOffset = 0;
-    pdebug("Generating VBO");
-    glGenBuffers(1,&mesh.vboID);
-    pdebug(mesh.vboID);
-    if (mesh.vboID > 0)
-    {
-        glBindBuffer(GL_ARRAY_BUFFER,mesh.vboID);
-        glBufferData(GL_ARRAY_BUFFER,sizeof(GLfloat) * 16,mesh.mesh,GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER,0);
-    }
 }
 
 void RenderWidget::generateFlatMesh(mesh_t &mesh, int width, int height, float scale)

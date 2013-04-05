@@ -1,11 +1,5 @@
-#version 130
+#version 330 core
 
-in vec4 inVertex;
-out vec4 TexCoord0;
-
-void main(void)
+void main()
 {
-    // pass vertex position and generate the texture coordinate
-    gl_Position = inVertex;
-    TexCoord0 = inVertex / 2.0 + 0.5;
 }
